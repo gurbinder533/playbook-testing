@@ -1,6 +1,6 @@
 ---
 name: dataset-to-ml-features-6j333p2l
-description: 'Take a raw dataset (from HuggingFace, Kaggle or uploaded) all the way to ML-ready features — ingest, profile and clean it, engineer encoded/scaled/temporal/text/embedding/cross-features, then run a leakage & integrity QA loop that guards against target/time leakage and row-count drift before assembling a feature view and delivering a data card and QA log. Use when the user wants an end-to-end raw-data-to-features run. Surfaced in chat as a Playbook form: the user supplies the dataset, its source, the ML task and the max QA iterations. This skill defines the ingest/profile/clean/engineer plan, the leakage & integrity QA loop, the feature-view assembly, the completeness contract and reproducibility rules.'
+description: 'Take a raw dataset (from HuggingFace, Kaggle or uploaded) all the way to ML-ready features — ingest, profile and clean it, engineer encoded/scaled/temporal/text/embedding/cross-features, then run a leakage & integrity QA loop that guards against target/time leakage and row-count drift before assembling a feature view and delivering a data card and QA log. Use when the user wants an end-to-end raw-data-to-features run. Surfaced in chat as a Playbook form: the user supplies the dataset, its source and the  ML task. This skill defines the ingest/profile/clean/engineer  plan, the leakage & integrity QA loop, the feature-view assembly, the completeness contract and reproducibility rules.'
 ---
 Dataset to ML-Ready Features
 
@@ -18,8 +18,9 @@ future information in features), and never silently drop rows or fabricate value
 - **Source** — `uploaded`, `huggingface` or `kaggle`.
 - **ML task** — the target, granularity and time window the features must fit;
   drives feature choices and leakage guards.
-- **Max QA iterations** — the upper bound on the `qa_loop`; stop early once the
-  features are clean.
+
+The `qa_loop` is not user-configurable: it runs until the features are clean, up to
+a built-in cap of 5 fix-and-verify iterations.
 
 ## How this Playbook runs (staged execution)
 
@@ -95,7 +96,7 @@ whether a leaky join, a scaler fit on the whole set, or a label-derived feature
 slipped in. Return a JSON list of issues
 {id,severity,category(LEAKAGE|INTEGRITY),location,description,fix} or [] if clean.
 Gate: any LEAKAGE issue and any row-count/INTEGRITY failure must fix. Fix, then
-re-verify; loop until clean or Max QA iterations (escalating what remains). Write
+re-verify; loop until clean or the built-in cap of 5 iterations (escalating what remains). Write
 the running log to `log.qa`; `validation.passed` = clean.
 
 ## Step: build_featureview — Assemble the feature view
