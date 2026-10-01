@@ -1,0 +1,34 @@
+---
+schema_version: 1
+title: "Hello World"
+description: "A simple hello world app."
+icon: sparkles
+accent_color: "#4DA6A0"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Home"
+    home: true
+
+styles:
+  - styles.css
+
+# A from-scratch app starts unbound: its own agent picks the real data and rewrites
+# this manifest + page modules in place. It declares no data until then, because the
+# starter page queries none, and an app that declares a source it never reads is an
+# app that fails to boot over data nobody wanted. Add a block like this when the page
+# starts reading something, with `<id>:<tag>` the feature-view ref from the inventory:
+#
+# data:
+#   - id: t
+#     label: "App data"
+#     source: /table/<ledger id>:<tag>
+
+# No `refresh` either: a reload control over an app that reads nothing could never
+# change what a reader sees. Add it with the data block above:
+#
+# refresh:
+#   mode: feature_view
+#   seconds: 0
+engine: "1.32.0"
