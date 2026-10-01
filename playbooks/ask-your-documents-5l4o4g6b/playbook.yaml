@@ -1,0 +1,100 @@
+---
+schema_version: 1
+category: Documents
+tags:
+  - documents
+  - q&a
+  - rag
+  - retrieval
+  - citations
+  - knowledge base
+title: Ask Your Documents
+description: Answer a question against your documents, grounded in the sources — parse the PDFs, retrieve the most relevant passages with two-stage semantic + graph-neighbourhood search, synthesize a grounded answer, then verify every claim maps to a retrieved passage before delivering the answer with its sources named. Connector-free; works on any document-heavy room.
+icon: analytics-up
+accent_color: '#6b4fbb'
+example: 'Using my uploaded employee handbook and policy PDFs, answer: what is the parental-leave policy for a new hire in their first year, and where is it stated?'
+required_inputs:
+  - Question
+  - Answer depth
+steps:
+  - Prepare & index the documents (pdf-processing)
+  - 'Retrieve relevant passages (knowledge-graph-search: semantic + graph)'
+  - Synthesize a grounded answer
+  - Verify every claim maps to a source, then deliver
+final_output: Grounded answer with its source passages named
+fields:
+  - key: question
+    label: Question
+    type: textarea
+    required: true
+    description: The question to answer from your documents. The answer is grounded in retrieved passages and names each source.
+    placeholder: e.g. What is the refund policy for annual plans, and what are the exceptions?
+  - key: docs
+    label: Documents
+    type: text
+    description: Optional. Which documents (or feature view) to search. Leave blank to use the parsed documents in the room.
+    placeholder: e.g. the uploaded policy PDFs
+  - key: depth
+    label: Answer depth
+    type: select
+    required: true
+    description: How exhaustive the retrieval and answer should be.
+    options:
+      - value: quick
+        label: Quick — direct answer with key sources
+      - value: thorough
+        label: Thorough — comprehensive answer with full sourcing
+    default_value: quick
+message_template: |-
+  Answer a question from my documents, grounded in the sources.
+
+  Question:
+  {{question}}
+
+  Documents: {{docs}}
+  Answer depth: {{depth}}
+
+  Every claim must map to a retrieved passage; name its source. If the documents don't answer it, say so — do not guess.
+plan:
+  - id: prepare
+    label: Prepare & index the documents
+    produces:
+      - data.corpus
+    details: 'Ensures the target documents are parsed (loading pdf-processing for any unparsed PDFs) and ready for retrieval. Produces data.corpus: the searchable document set.'
+    tools:
+      - pdf-processing
+      - execute_python
+  - id: retrieve
+    label: Retrieve relevant passages (semantic + graph-neighbourhood)
+    depends_on:
+      - prepare
+    produces:
+      - data.evidence
+    details: Loads the knowledge-graph-search skill and runs its two-stage retrieval — semantic search for the most relevant text/image chunks, then graph-neighbourhood expansion over the document graph — gathering the evidence passages with their source locations. Depth controls how wide the retrieval goes.
+    tools:
+      - knowledge-graph-search
+      - execute_python
+  - id: answer
+    label: Synthesize a grounded answer
+    depends_on:
+      - retrieve
+    produces:
+      - draft.answer
+    details: Synthesizes an answer strictly from data.evidence, grounding every claim in its source passage (naming the document/page) and flagging any part the documents do not cover. Produces draft.answer.
+    tools:
+      - execute_python
+  - id: verify_deliver
+    label: Verify every claim maps to a source, then deliver
+    depends_on:
+      - answer
+    produces:
+      - artifact.answer
+      - validation.passed
+    details: Verifies that every claim in the answer maps to a retrieved passage (no unsupported statements) and that each names the right source; drops or flags anything unsupported. Then delivers the final grounded answer with its source passages named. validation.passed = every claim is grounded.
+    tools:
+      - execute_python
+      - edit_text_files
+required_outputs:
+  - data.evidence
+  - artifact.answer
+  - validation.passed
