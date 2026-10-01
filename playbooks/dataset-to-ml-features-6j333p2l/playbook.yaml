@@ -1,0 +1,137 @@
+---
+schema_version: 1
+category: Data
+tags:
+  - features
+  - ml
+  - dataset
+  - engineering
+  - preprocessing
+title: Dataset to ML-Ready Features
+description: Take a raw dataset (from HuggingFace, Kaggle or uploaded) all the way to ML-ready features — ingest, profile and clean it, engineer encoded/scaled/temporal/text/embedding/cross-features, then run a leakage & integrity QA loop that guards against target/time leakage and row-count drift before assembling a feature view and delivering a data card and QA log.
+icon: analytics-up
+accent_color: '#0d9488'
+example: 'Take the Kaggle telco-churn dataset to ML-ready features for a monthly churn model: profile and clean it, engineer encodings, scalings and tenure features, check for target leakage, and build a feature view with a data card.'
+required_inputs:
+  - Dataset
+  - ML task
+  - Max QA iterations
+steps:
+  - 'Ingest the dataset (data-feature-engineering skill: HF / Kaggle / uploaded)'
+  - Profile & clean (schema, nulls, cardinality, outliers, dedupe)
+  - Engineer ML-ready features (encoding, scaling, temporal, text, embeddings)
+  - Leakage & integrity QA loop — guard leakage, verify row counts & distributions
+  - Assemble the feature view
+  - Deliver the feature view + data card + QA log
+final_output: ML-ready feature view + Markdown data card + QA log
+fields:
+  - key: dataset
+    label: Dataset
+    type: text
+    required: true
+    description: The dataset to process — a HuggingFace Hub id, a Kaggle dataset ref, or the name of an uploaded/connected raw table.
+    placeholder: e.g. blastchar/telco-customer-churn (Kaggle) or an uploaded CSV name
+  - key: source
+    label: Source
+    type: select
+    required: true
+    description: Where the dataset comes from.
+    options:
+      - value: uploaded
+        label: Uploaded / connected raw table
+      - value: huggingface
+        label: HuggingFace Hub
+      - value: kaggle
+        label: Kaggle
+    default_value: uploaded
+  - key: mlTask
+    label: ML task
+    type: textarea
+    required: true
+    description: The target, granularity and time window the features must fit — this drives feature choices and leakage guards.
+    placeholder: e.g. Predict monthly churn per customer; target = churned_next_month; no future info past the snapshot date.
+  - key: maxIterations
+    label: Max QA iterations
+    type: text
+    description: Upper bound on the leakage & integrity verify → fix → re-verify loop. Stops early once the features are clean.
+    default_value: '5'
+    placeholder: '5'
+message_template: |-
+  Take a raw dataset to ML-ready features.
+
+  Dataset: {{dataset}}
+  Source: {{source}}
+  ML task:
+  {{mlTask}}
+  Max QA fix-and-verify iterations: {{maxIterations}}
+
+  Profile before transforming; justify every cleaning/encoding decision; guard against target and time leakage; never silently drop rows or fabricate values; report row/column counts before and after each transform.
+plan:
+  - id: ingest
+    label: Ingest the dataset (HuggingFace / Kaggle / uploaded)
+    produces:
+      - data.raw
+    details: Loads the data-feature-engineering skill and ingests the dataset — pulling from the HuggingFace Hub or the Kaggle API, or loading the uploaded/connected raw table — following the skill's API reference guides. Produces data.raw with its starting row/column counts recorded.
+    tools:
+      - data-feature-engineering
+      - execute_python
+  - id: profile_clean
+    label: Profile & clean (schema, nulls, cardinality, outliers, dedupe)
+    depends_on:
+      - ingest
+    produces:
+      - data.profile
+      - data.clean
+    details: Computes the schema, types, null rates, cardinality, distributions and outliers, then cleans — dedupe, fix types, handle missing values, normalize text — with each decision justified and the row/column count reported before and after. Never silently drops rows or fabricates values. Produces data.profile and data.clean.
+    tools:
+      - data-feature-engineering
+      - execute_python
+  - id: engineer
+    label: Engineer ML-ready features (encoding, scaling, temporal, text, embeddings)
+    depends_on:
+      - profile_clean
+    produces:
+      - data.features
+    details: Builds ML-ready features fit to the task — categorical encoding, scaling/normalization, temporal features, text features, embeddings and cross-features — with every transform documented and target/time leakage explicitly prevented by construction. Produces data.features.
+    tools:
+      - data-feature-engineering
+      - execute_python
+  - id: qa_loop
+    label: 'Leakage & integrity QA loop: guard leakage, verify counts & distributions'
+    depends_on:
+      - engineer
+    produces:
+      - data.features
+      - log.qa
+      - validation.passed
+    details: 'Runs a leakage & integrity audit: checks no feature encodes the target or future information (train/test-time consistency, no post-outcome fields, no future timestamps), verifies row-count integrity end-to-end (no silent drops), sanity-checks distributions against the profile, and audits feature-target correlations for suspiciously perfect predictors that signal leakage. Adversarial self-review asks whether a leaky join, a global-stat scaler fit on the whole set, or a label-derived feature slipped in. Fixes all findings, then re-verifies, looping until the features are clean (or the cap, escalating what remains). Writes the running log to log.qa and sets validation.passed when clean.'
+    tools:
+      - data-feature-engineering
+      - execute_python
+  - id: build_featureview
+    label: Assemble the feature view
+    depends_on:
+      - qa_loop
+    produces:
+      - artifact.feature_view
+    details: 'Assembles the verified features into an ML-ready feature view in the room. Produces artifact.feature_view. Note: this Playbook does not create or schedule data pipelines — if the user wants these steps to run on a schedule, tell them a data pipeline is what does that.'
+    tools:
+      - data-feature-engineering
+      - execute_python
+  - id: deliver
+    label: Final delivery (feature view + data card + QA log)
+    depends_on:
+      - build_featureview
+    produces:
+      - artifact.data_card
+      - artifact.qa_log
+    details: Writes a Markdown data card documenting the source, schema, every cleaning/feature transform, the leakage guards applied, and the before/after row/column counts, plus a QA log of the audit iterations. Gives the runtime-provided download links, points the user to the feature view, and prints the summary.
+    tools:
+      - edit_text_files
+required_outputs:
+  - data.clean
+  - data.features
+  - artifact.feature_view
+  - artifact.data_card
+  - artifact.qa_log
+  - validation.passed
