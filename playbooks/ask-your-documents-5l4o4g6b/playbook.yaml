@@ -15,6 +15,7 @@ accent_color: '#6b4fbb'
 example: 'Using my uploaded employee handbook and policy PDFs, answer: what is the parental-leave policy for a new hire in their first year, and where is it stated?'
 required_inputs:
   - Question
+  - Answer depth
 steps:
   - Prepare & index the documents (pdf-processing)
   - 'Retrieve relevant passages (knowledge-graph-search: semantic + graph)'
@@ -33,6 +34,17 @@ fields:
     type: text
     description: Optional. Which documents (or feature view) to search. Leave blank to use the parsed documents in the room.
     placeholder: e.g. the uploaded policy PDFs
+  - key: depth
+    label: Answer depth
+    type: select
+    required: true
+    description: How exhaustive the retrieval and answer should be.
+    options:
+      - value: quick
+        label: Quick — direct answer with key sources
+      - value: thorough
+        label: Thorough — comprehensive answer with full sourcing
+    default_value: quick
 message_template: |-
   Answer a question from my documents, grounded in the sources.
 
@@ -40,6 +52,7 @@ message_template: |-
   {{question}}
 
   Documents: {{docs}}
+  Answer depth: {{depth}}
 
   Every claim must map to a retrieved passage; name its source. If the documents don't answer it, say so — do not guess.
 plan:
@@ -57,7 +70,7 @@ plan:
       - prepare
     produces:
       - data.evidence
-    details: Loads the knowledge-graph-search skill and runs its two-stage retrieval — semantic search for the most relevant text/image chunks, then graph-neighbourhood expansion over the document graph — gathering the evidence passages with their source locations.
+    details: Loads the knowledge-graph-search skill and runs its two-stage retrieval — semantic search for the most relevant text/image chunks, then graph-neighbourhood expansion over the document graph — gathering the evidence passages with their source locations. Depth controls how wide the retrieval goes.
     tools:
       - knowledge-graph-search
       - execute_python
