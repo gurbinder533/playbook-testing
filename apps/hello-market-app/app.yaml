@@ -1,0 +1,36 @@
+schema_version: 1
+title: "Hello Market"
+description: "A simple live AAPL stock snapshot powered by Polygon.io."
+icon: analytics-up
+accent_color: "#7CFFB2"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "AAPL Snapshot"
+    home: true
+
+styles:
+  - styles.css
+
+data:
+  - id: stocks
+    label: "AAPL market snapshots"
+    source: /table/stocks
+    produced_by:
+      kind: pipeline
+      pipeline: "AAPL market snapshot (app)"
+      pipeline_id: "11"
+
+refresh:
+  mode: feature_view
+  seconds: 0
+
+theme:
+  mode: dark
+  variants:
+    density: comfortable
+    radius: lg
+    card: elevated
+
+engine: "1.32.0"
