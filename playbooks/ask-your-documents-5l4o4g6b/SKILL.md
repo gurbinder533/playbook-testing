@@ -10,8 +10,6 @@ delivering.
 - **Question** — what to answer from the documents.
 - **Documents** (optional) — which docs/feature view; if blank, the parsed
   documents in the room.
-- **Answer depth** — `quick` (direct answer + key sources) or `thorough`
-  (comprehensive + full sourcing).
 
 ## How this Playbook runs (staged execution)
 
@@ -52,8 +50,7 @@ PDFs) and ready for retrieval. Produce `data.corpus`: the searchable document se
 
 Load `knowledge-graph-search`. Run its two-stage retrieval — semantic search for
 the most relevant text/image chunks, then graph-neighbourhood expansion over the
-document graph — gathering evidence passages with their source locations. Depth
-controls how wide the retrieval goes. Produce `data.evidence`.
+document graph — gathering evidence passages with their source locations. Produce `data.evidence`.
 
 ## Step: answer — Synthesize a grounded answer
 
