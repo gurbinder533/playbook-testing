@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI Project Tracker</title>
+<style>
+:root{
+  --bg:#f4f7fb; --panel:#fff; --ink:#0f1e33; --muted:#5b6b82; --border:#e2e8f2;
+  --accent:#2563eb; --accent2:#1d4ed8; --green:#16a34a; --amber:#d97706; --red:#dc2626; --blue:#2563eb;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:'SFMono-Regular',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+*{scrollbar-width:thin;scrollbar-color:rgba(91,107,130,.35) transparent}
+*::-webkit-scrollbar{width:8px;height:8px}*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:rgba(91,107,130,.35);border-radius:999px}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100vh;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh}
+#header{background:linear-gradient(120deg,#0f1e33 0%,#1e40af 55%,#2563eb 100%);color:#fff;padding:16px 26px;display:flex;align-items:center;gap:18px;flex-shrink:0}
+#header .title h1{font-size:19px;font-weight:800}#header .title p{font-size:11.5px;color:#c5d6f5;margin-top:2px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-left:6px}
+.pill{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#d6e2f9;white-space:nowrap}
+.pill strong{color:#fff;font-weight:700}
+.live{margin-left:auto;font-size:10px;color:#c5d6f5;display:flex;align-items:center;gap:6px;letter-spacing:1px}
+.live .dot{width:7px;height:7px;border-radius:50%;background:#93c5fd;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--panel);padding:0 12px}
+.tab{padding:12px 22px;cursor:pointer;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s;font-weight:600}
+.tab:hover{color:var(--ink)}.tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+#main{flex:1;min-height:0;overflow:hidden;position:relative}
+.view{position:absolute;inset:0;display:none;overflow:auto}.view.active{display:block}
+.wrap{max-width:1320px;margin:0 auto;padding:22px 24px 60px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(15,30,51,.04)}
+.kpi .k-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi .k-val{font-size:23px;font-weight:800;margin-top:5px;font-family:var(--mono);letter-spacing:-.5px}
+.kpi .k-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.k-val.good{color:var(--green)}.k-val.acc{color:var(--accent2)}.k-val.warn{color:var(--amber)}.k-val.bad{color:var(--red)}
+.status-strip{display:flex;height:16px;border-radius:8px;overflow:hidden;margin:8px 0 6px;border:1px solid var(--border)}
+.status-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.status-legend .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:0 1px 2px rgba(15,30,51,.04)}
+.panel h2{font-size:14px;font-weight:800;margin-bottom:4px}.panel .sub{font-size:11.5px;color:var(--muted);margin-bottom:14px}
+.proj-row{margin:12px 0}
+.proj-head{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+.proj-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:66%}
+.proj-pct{font-family:var(--mono);font-weight:700}
+.proj-track{background:#e6ecf7;border-radius:6px;height:10px;overflow:hidden}
+.proj-fill{height:100%;border-radius:6px}
+.proj-meta{font-size:10.5px;color:var(--muted);margin-top:3px}
+.risk-list{display:flex;flex-direction:column;gap:9px;max-height:430px;overflow:auto;padding-right:4px}
+.risk-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-left:4px solid var(--amber);border-radius:9px;cursor:pointer;transition:all .15s}
+.risk-row.late{border-left-color:var(--red)}
+.risk-row:hover{box-shadow:0 4px 12px rgba(15,30,51,.08);transform:translateY(-1px)}
+.risk-name{flex:1;font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.risk-sub{font-size:10.5px;color:var(--muted)}
+.risk-due{font-size:10.5px;width:88px;text-align:right}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+#tbl-search{padding:8px 12px;background:var(--panel);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:12px;outline:none;width:280px}
+#tbl-search:focus{border-color:var(--accent)}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.fbtn{padding:7px 12px;border:1px solid var(--border);background:var(--panel);border-radius:8px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}
+.fbtn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.export-btn{padding:8px 15px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;cursor:pointer}
+.export-btn:hover{background:var(--accent2)}
+.tbl-count{font-size:11.5px;color:var(--muted);margin-left:auto}
+.tbl-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:#eaf0f9;color:var(--muted);padding:10px 13px;text-align:left;font-size:10px;letter-spacing:.08em;text-transform:uppercase;position:sticky;top:0;cursor:pointer;border-bottom:1px solid var(--border);user-select:none;white-space:nowrap;z-index:2}
+th:hover{color:var(--accent2)}th.asc::after{content:" ▲";font-size:8px}th.desc::after{content:" ▼";font-size:8px}
+td{padding:10px 13px;border-bottom:1px solid var(--border);vertical-align:middle;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.num{text-align:right;font-family:var(--mono)}tr:hover td{background:#f2f6fd;cursor:pointer}
+.pbar{display:inline-flex;align-items:center;gap:7px}
+.pbar .t{width:70px;height:7px;background:#e6ecf7;border-radius:4px;overflow:hidden}.pbar .t>span{display:block;height:100%}
+.st-tag{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px}
+.st-tag.ontrack{background:#dcfce7;color:#15803d}.st-tag.atrisk{background:#fef3c7;color:#b45309}
+.st-tag.delayed{background:#fee2e2;color:#b91c1c}.st-tag.done{background:#dbeafe;color:#1d4ed8}.st-tag.hold{background:#e2e8f0;color:#475569}
+#drawer{position:fixed;right:0;top:0;bottom:0;width:400px;background:var(--panel);border-left:1px solid var(--border);z-index:100;padding:24px;overflow-y:auto;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;gap:12px;box-shadow:-8px 0 24px rgba(15,30,51,.10)}
+#drawer.open{transform:translateX(0)}
+#drawer-overlay{position:fixed;inset:0;background:rgba(15,30,51,.26);z-index:99;opacity:0;pointer-events:none;transition:opacity .25s}
+#drawer-overlay.open{opacity:1;pointer-events:auto}
+.dr-close{align-self:flex-end;cursor:pointer;color:var(--muted);font-size:18px}.dr-close:hover{color:var(--red)}
+.dr-name{font-size:17px;font-weight:800;line-height:1.25}.dr-owner{color:var(--accent2);font-size:12.5px;margin-top:3px}
+.dr-track{background:#e6ecf7;border-radius:7px;height:12px;overflow:hidden;margin-top:8px}.dr-track>span{display:block;height:100%}
+.dr-summary{background:#eff5ff;border:1px solid #bfdbfe;border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.5;color:#1e3a8a}
+.dr-summary .h{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#2563eb;margin-bottom:5px;font-weight:700}
+.dr-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.dr-row .l{color:var(--muted)}.dr-row .v{color:var(--ink);font-weight:600;text-align:right;max-width:220px}
+.err{padding:24px;color:var(--red);font-size:13px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div class="title"><h1>AI Project Tracker</h1><p>Projects · milestones · tasks · AI status summaries</p></div>
+    <div class="pills">
+      <div class="pill"><strong id="p-active">—</strong> active</div>
+      <div class="pill"><strong id="p-risk">—</strong> at risk</div>
+      <div class="pill"><strong id="p-overdue">—</strong> overdue</div>
+    </div>
+    <div class="live"><span class="dot"></span>LIVE · PROJECTS</div>
+  </div>
+  <div id="tabs">
+    <div class="tab active" data-tab="overview">◇ Projects Overview</div>
+    <div class="tab" data-tab="projects">⊞ Projects</div>
+  </div>
+  <div id="main">
+    <div class="view active" id="view-overview">
+      <div class="wrap">
+        <div class="kpis" id="kpis"></div>
+        <div class="panel" style="margin-top:22px">
+          <h2>Status</h2>
+          <div class="sub">Portfolio health across projects</div>
+          <div class="status-legend" id="status-legend"></div>
+          <div class="status-strip" id="status-strip"></div>
+        </div>
+        <div class="grid">
+          <div class="panel">
+            <h2>Progress by project</h2>
+            <div class="sub">Completion of active projects</div>
+            <div id="projects-bars"></div>
+          </div>
+          <div class="panel">
+            <h2>AI at-risk &amp; overdue</h2>
+            <div class="sub">Projects needing attention — most urgent first</div>
+            <div class="risk-list" id="risk"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="view" id="view-projects">
+      <div class="wrap">
+        <div class="toolbar">
+          <input id="tbl-search" type="text" placeholder="Search project, owner, team, milestone…"/>
+          <div class="filters" id="status-filters">
+            <button class="fbtn active" data-s="all">All</button>
+            <button class="fbtn" data-s="ontrack">On track</button>
+            <button class="fbtn" data-s="atrisk">At risk</button>
+            <button class="fbtn" data-s="delayed">Delayed</button>
+            <button class="fbtn" data-s="overdue">Overdue</button>
+          </div>
+          <button class="export-btn" id="export-csv">⬇ CSV</button>
+          <span class="tbl-count" id="tbl-count"></span>
+        </div>
+        <div class="tbl-card">
+          <table id="proj-table">
+            <thead><tr>
+              <th data-col="project">Project</th><th data-col="owner">Owner</th>
+              <th data-col="progress" class="num">Progress</th><th data-col="tasks" class="num">Tasks</th>
+              <th data-col="status">Status</th><th data-col="due_date">Due</th>
+            </tr></thead>
+            <tbody id="tbl-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="drawer-overlay"></div>
+<div id="drawer"><div id="drawer-body"></div></div>
+
+<script>
+// SHARED RENDERER — identical for live app and preview; only loadRows() differs.
+const STATUS_META=[
+  {key:"ontrack",name:"On track",color:"#16a34a"},
+  {key:"atrisk",name:"At risk",color:"#d97706"},
+  {key:"delayed",name:"Delayed",color:"#dc2626"},
+  {key:"hold",name:"On hold",color:"#94a3b8"},
+  {key:"done",name:"Completed",color:"#2563eb"}
+];
+function esc(s){const d=document.createElement("div");d.textContent=s==null?"":String(s);return d.innerHTML;}
+function num(v){const n=Number(v);return isNaN(n)?null:n;}
+function parseDate(v){if(!v)return null;const d=new Date(v);return isNaN(d)?null:d;}
+function fmtDate(d){return d?d.toLocaleDateString("en-US",{year:"2-digit",month:"short",day:"numeric"}):"—";}
+function pct(n){return Math.max(0,Math.min(100,Math.round(n)));}
+function progColor(p){return p>=70?"#16a34a":p>=40?"#2563eb":"#d97706";}
+function days(a,b){return Math.round((a-b)/86400000);}
+function normStatus(s){
+  s=String(s||"").toLowerCase();
+  if(/done|complete|closed|shipped|delivered/.test(s))return "done";
+  if(/hold|paused|parked/.test(s))return "hold";
+  if(/delay|late|behind|off ?track|red|blocked/.test(s))return "delayed";
+  if(/risk|amber|yellow|warning/.test(s))return "atrisk";
+  return "ontrack";
+}
+
+let ROWS=[],TBL=[],NOW=new Date(),tblFilter="all";
+let sortCol="due_date",sortDir=1;
+function normalize(raw){
+  return raw.map((r,i)=>{let p=num(r.progress);if(p!=null&&p<=1&&p>0)p*=100;
+    const tt=num(r.tasks_total),td=num(r.tasks_done);
+    if(p==null&&tt!=null&&tt>0&&td!=null)p=td/tt*100;
+    const st=normStatus(r.status);if(p==null)p=st==="done"?100:0;
+    const due=parseDate(r.due_date);
+    const overdue=st!=="done"&&due!=null&&due<NOW;
+    return {...r,rank:i+1,progress:pct(p),tasks_total:tt,tasks_done:td,budget:num(r.budget),
+      _start:parseDate(r.start_date),_due:due,st,overdue,dpd:due?days(due,NOW):null};});
+}
+function boot(rows){ROWS=normalize(rows||[]);paintKpis();paintStatus();paintBars();paintRisk();TBL=ROWS.slice();sortTable();wireOnce();}
+
+function paintKpis(){
+  const active=ROWS.filter(r=>r.st!=="done").length;
+  const ontrack=ROWS.filter(r=>r.st==="ontrack").length;
+  const risk=ROWS.filter(r=>r.st==="atrisk"||r.st==="delayed").length;
+  const done=ROWS.filter(r=>r.st==="done").length;
+  const overdue=ROWS.filter(r=>r.overdue).length;
+  const act=ROWS.filter(r=>r.st!=="done");
+  const avg=act.length?Math.round(act.reduce((a,r)=>a+r.progress,0)/act.length):0;
+  document.getElementById("p-active").textContent=active;
+  document.getElementById("p-risk").textContent=risk;
+  document.getElementById("p-overdue").textContent=overdue;
+  const K=(l,v,s,c)=>`<div class="kpi"><div class="k-label">${l}</div><div class="k-val ${c||""}">${v}</div><div class="k-sub">${s}</div></div>`;
+  document.getElementById("kpis").innerHTML=
+    K("Active projects",active,"in flight","acc")+
+    K("On track",ontrack,active?Math.round(ontrack/active*100)+"% of active":"","good")+
+    K("At risk / delayed",risk,"need attention",risk>0?"warn":"good")+
+    K("Completed",done,"delivered","good")+
+    K("Avg progress",avg+"%","active projects",avg>=50?"good":"warn")+
+    K("Overdue",overdue,"past due date",overdue>0?"bad":"good");
+}
+function paintStatus(){
+  const groups=STATUS_META.map(s=>({...s,count:ROWS.filter(r=>r.st===s.key).length}));
+  const total=ROWS.length||1;
+  document.getElementById("status-strip").innerHTML=groups.map(g=>`<div title="${g.name}: ${g.count}" style="flex:${Math.max(0.4,g.count/total*100)};background:${g.color}"></div>`).join("");
+  document.getElementById("status-legend").innerHTML=groups.map(g=>`<span><span class="sw" style="background:${g.color}"></span>${g.name} · <b>${g.count}</b></span>`).join("");
+}
+function paintBars(){
+  const rows=ROWS.filter(r=>r.st!=="done").sort((a,b)=>a.progress-b.progress).slice(0,9);
+  const el=document.getElementById("projects-bars");
+  if(!rows.length){el.innerHTML=`<div style="color:var(--muted);font-size:12.5px">No active projects.</div>`;return;}
+  el.innerHTML=rows.map(r=>`
+    <div class="proj-row"><div class="proj-head"><span class="proj-name" title="${esc(r.project)}">${esc(r.project||"—")}</span><span class="proj-pct" style="color:${progColor(r.progress)}">${r.progress}%</span></div>
+      <div class="proj-track"><span class="proj-fill" style="width:${r.progress}%;background:${progColor(r.progress)}"></span></div>
+      <div class="proj-meta">${esc(r.owner||"—")}${r._due?" · due "+fmtDate(r._due):""}${r.overdue?" · overdue":""}</div></div>`).join("");
+}
+function paintRisk(){
+  const items=ROWS.filter(r=>r.st!=="done"&&(r.st==="atrisk"||r.st==="delayed"||r.overdue))
+    .sort((a,b)=>{const oa=a.overdue?1:0,ob=b.overdue?1:0;if(oa!==ob)return ob-oa;
+      const rank={delayed:0,atrisk:1};return (rank[a.st]??2)-(rank[b.st]??2);}).slice(0,10);
+  const el=document.getElementById("risk");
+  if(!items.length){el.innerHTML=`<div style="color:var(--muted);font-size:12.5px">No at-risk or overdue projects — the portfolio is healthy.</div>`;return;}
+  el.innerHTML=items.map(r=>{const meta=STATUS_META.find(s=>s.key===r.st);
+    return `<div class="risk-row ${r.overdue?"late":""}" data-i="${r.rank-1}">
+    <span style="min-width:0"><div class="risk-name">${esc(r.project||"—")}</div><div class="risk-sub">${esc(r.owner||"—")} · ${r.progress}% · ${meta?meta.name:r.st}</div></span>
+    <span class="risk-due" style="${r.overdue?'color:var(--red);font-weight:700':'color:var(--muted)'}">${r.overdue?Math.abs(r.dpd)+"d late":(r.dpd!=null?"in "+r.dpd+"d":"—")}</span></div>`;}).join("");
+  el.querySelectorAll(".risk-row").forEach(c=>c.addEventListener("click",()=>openDrawer(ROWS[+c.dataset.i])));
+}
+function renderTable(){
+  const b=document.getElementById("tbl-body");b.innerHTML="";
+  TBL.forEach(r=>{const meta=STATUS_META.find(s=>s.key===r.st);const tr=document.createElement("tr");
+    const tasks=(r.tasks_done!=null&&r.tasks_total!=null)?`${r.tasks_done}/${r.tasks_total}`:"—";
+    tr.innerHTML=`<td title="${esc(r.project)}">${esc(r.project||"—")}</td><td>${esc(r.owner||"—")}</td>
+      <td class="num"><span class="pbar"><span class="t"><span style="width:${r.progress}%;background:${progColor(r.progress)}"></span></span>${r.progress}%</span></td>
+      <td class="num">${tasks}</td><td><span class="st-tag ${r.st}">${meta?meta.name:r.st}</span></td>
+      <td style="${r.overdue?'color:var(--red);font-weight:700':''}">${fmtDate(r._due)}</td>`;
+    tr.addEventListener("click",()=>openDrawer(r));b.appendChild(tr);});
+  document.getElementById("tbl-count").textContent=TBL.length+" projects";
+}
+function applyFilter(){
+  const q=(document.getElementById("tbl-search").value||"").toLowerCase();
+  TBL=ROWS.filter(r=>{
+    if(tblFilter==="overdue"&&!r.overdue)return false;
+    if(tblFilter!=="all"&&tblFilter!=="overdue"&&r.st!==tblFilter)return false;
+    if(q&&!((r.project||"")+" "+(r.owner||"")+" "+(r.team||"")+" "+(r.milestone||"")).toLowerCase().includes(q))return false;
+    return true;});
+  sortTable();
+}
+function sortTable(){
+  TBL.sort((a,b)=>{let av=a[sortCol],bv=b[sortCol];
+    if(sortCol==="due_date"){av=a._due?+a._due:Infinity;bv=b._due?+b._due:Infinity;}
+    if(sortCol==="tasks"){av=a.tasks_done??-1;bv=b.tasks_done??-1;}
+    if(sortCol==="status"){av=a.st;bv=b.st;}
+    if(av==null)av=(typeof bv==="number")?-Infinity:"";if(bv==null)bv=(typeof av==="number")?-Infinity:"";
+    if(typeof av==="string"&&typeof bv==="string")return av.localeCompare(bv)*sortDir;return ((+av||0)-(+bv||0))*sortDir;});
+  renderTable();
+  document.querySelectorAll("th").forEach(th=>{th.classList.remove("asc","desc");if(th.dataset.col===sortCol)th.classList.add(sortDir===1?"asc":"desc");});
+}
+function aiSummary(r){
+  const meta=STATUS_META.find(s=>s.key===r.st);const bits=[];
+  bits.push(`<b>${esc(r.project||"This project")}</b> is <b>${meta?meta.name.toLowerCase():r.st}</b> at <b>${r.progress}%</b> complete`);
+  if(r.tasks_done!=null&&r.tasks_total!=null)bits.push(`with ${r.tasks_done} of ${r.tasks_total} tasks done`);
+  if(r.milestone)bits.push(`heading into "${esc(r.milestone)}"`);
+  let s=bits.join(" ")+".";
+  if(r.overdue)s+=` It is <b>${Math.abs(r.dpd)} days overdue</b> — recommend a scope or timeline review.`;
+  else if(r.st==="atrisk")s+=" Progress is trailing plan; watch the next milestone closely.";
+  else if(r.st==="delayed")s+=" Timeline has slipped; the critical path needs attention.";
+  else if(r.st==="done")s+=" Delivered — capture learnings in a retro.";
+  else if(r.dpd!=null&&r.dpd>=0)s+=` On pace with ${r.dpd} days to the due date.`;
+  return s;
+}
+function openDrawer(r){
+  if(!r)return;const meta=STATUS_META.find(s=>s.key===r.st);
+  document.getElementById("drawer-body").innerHTML=`
+    <span class="dr-close" id="dr-close">✕</span>
+    <div class="dr-name">${esc(r.project||"—")}</div>
+    <div class="dr-owner">${esc(r.owner||"—")}${r.team?" · "+esc(r.team):""}</div>
+    <span class="st-tag ${r.st}" style="align-self:flex-start;margin-top:4px">${meta?meta.name:r.st}${r.overdue?" · overdue":""}</span>
+    <div class="dr-track"><span style="width:${r.progress}%;background:${progColor(r.progress)}"></span></div>
+    <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">${r.progress}% complete${r.tasks_done!=null&&r.tasks_total!=null?` · ${r.tasks_done}/${r.tasks_total} tasks`:""}</div>
+    <div class="dr-summary"><div class="h">✦ AI status summary</div>${aiSummary(r)}</div>
+    <div class="dr-row"><span class="l">Milestone</span><span class="v">${esc(r.milestone||"—")}</span></div>
+    <div class="dr-row"><span class="l">Health</span><span class="v">${esc(r.health||(meta?meta.name:"—"))}</span></div>
+    <div class="dr-row"><span class="l">Start</span><span class="v">${fmtDate(r._start)}</span></div>
+    <div class="dr-row"><span class="l">Due</span><span class="v">${r._due?r._due.toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"}):"—"}</span></div>
+    <div class="dr-row"><span class="l">Budget</span><span class="v">${r.budget!=null?"$"+r.budget.toLocaleString("en-US"):"—"}</span></div>
+    ${r.notes?`<div class="dr-row" style="border:none"><span class="l">Notes</span></div><div style="font-size:12.5px;color:var(--ink);line-height:1.5">${esc(r.notes)}</div>`:""}`;
+  document.getElementById("dr-close").addEventListener("click",closeDrawer);
+  document.getElementById("drawer").classList.add("open");document.getElementById("drawer-overlay").classList.add("open");
+}
+function closeDrawer(){document.getElementById("drawer").classList.remove("open");document.getElementById("drawer-overlay").classList.remove("open");}
+let wired=false;
+function wireOnce(){
+  if(wired)return;wired=true;
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===t));
+    document.getElementById("view-overview").classList.toggle("active",t.dataset.tab==="overview");
+    document.getElementById("view-projects").classList.toggle("active",t.dataset.tab==="projects");}));
+  document.querySelectorAll("th[data-col]").forEach(th=>th.addEventListener("click",()=>{
+    const c=th.dataset.col;if(sortCol===c)sortDir*=-1;else{sortCol=c;sortDir=(c==="progress"||c==="tasks")?-1:1;}sortTable();}));
+  document.getElementById("tbl-search").addEventListener("input",applyFilter);
+  document.querySelectorAll("#status-filters .fbtn").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll("#status-filters .fbtn").forEach(x=>x.classList.toggle("active",x===b));
+    tblFilter=b.dataset.s;applyFilter();}));
+  document.getElementById("export-csv").addEventListener("click",()=>{
+    const cols=["project","owner","team","status","progress","tasks_done","tasks_total","milestone","start_date","due_date","budget"];
+    const head=cols.join(",");
+    const body=TBL.map(r=>cols.map(c=>{let v=r[c];if(c==="status")v=r.st;
+      if(c==="start_date")v=r._start?r._start.toISOString().slice(0,10):"";
+      if(c==="due_date")v=r._due?r._due.toISOString().slice(0,10):"";
+      return '"'+String(v==null?"":v).replace(/"/g,'""')+'"';}).join(",")).join("\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([head+"\n"+body],{type:"text/csv"}));a.download="projects_export.csv";a.click();});
+  document.getElementById("drawer-overlay").addEventListener("click",closeDrawer);
+}
+async function bootApp(loader){
+  try{boot(await loader());}
+  catch(err){const msg=(err&&err.message)?err.message:String(err);
+    document.getElementById("main").innerHTML=`<div class="err">Couldn't load project data: ${esc(msg)}</div>`;}
+}
+window.bootApp=bootApp;
+</script>
+<script>
+// PREVIEW-ONLY — static snapshot for the template gallery. Same portfolio design as
+// pages/home.js via the shared renderer above, from baked SAMPLE_ROWS — NO live queries,
+// imports nothing. NEVER scaffolded into a build (live source is pages/home.js). Due
+// dates offset from today so overdue / at-risk always look current.
+const _t=new Date();const _d=(n)=>{const x=new Date(_t);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};
+const SAMPLE_ROWS=[
+  {project:"Website redesign",owner:"Priya N.",status:"on track",progress:68,health:"Green",start_date:_d(-40),due_date:_d(20),milestone:"Design QA",tasks_total:48,tasks_done:33,budget:120000,team:"Marketing",notes:"On plan; content migration next."},
+  {project:"Data platform migration",owner:"Dana K.",status:"at risk",progress:45,health:"Amber",start_date:_d(-70),due_date:_d(12),milestone:"Cutover rehearsal",tasks_total:96,tasks_done:43,budget:340000,team:"Engineering",notes:"Dependency on vendor API slipping."},
+  {project:"Mobile app launch",owner:"Lee C.",status:"delayed",progress:38,health:"Red",start_date:_d(-90),due_date:_d(-6),milestone:"App store submission",tasks_total:72,tasks_done:27,budget:210000,team:"Product",notes:"Store review backlog; timeline slipped."},
+  {project:"SOC 2 Type II audit",owner:"Sam O.",status:"on track",progress:82,health:"Green",start_date:_d(-120),due_date:_d(30),milestone:"Evidence collection",tasks_total:60,tasks_done:49,budget:85000,team:"Security",notes:""},
+  {project:"CRM rollout",owner:"Marco V.",status:"on track",progress:55,health:"Green",start_date:_d(-30),due_date:_d(40),milestone:"Sales training",tasks_total:40,tasks_done:22,budget:60000,team:"RevOps",notes:""},
+  {project:"Billing revamp",owner:"Dana K.",status:"at risk",progress:30,health:"Amber",start_date:_d(-25),due_date:_d(8),milestone:"Proration engine",tasks_total:54,tasks_done:16,budget:150000,team:"Engineering",notes:"Scope grew after finance review."},
+  {project:"Warehouse automation",owner:"Alex R.",status:"on hold",progress:20,health:"Grey",start_date:_d(-15),due_date:_d(90),milestone:"Vendor selection",tasks_total:30,tasks_done:6,budget:400000,team:"Operations",notes:"Paused pending budget approval."},
+  {project:"Q3 marketing campaign",owner:"Priya N.",status:"done",progress:100,health:"Green",start_date:_d(-80),due_date:_d(-10),milestone:"Wrap-up",tasks_total:36,tasks_done:36,budget:95000,team:"Marketing",notes:"Exceeded lead target by 18%."},
+  {project:"Support knowledge base",owner:"Grace L.",status:"on track",progress:74,health:"Green",start_date:_d(-50),due_date:_d(15),milestone:"Article review",tasks_total:120,tasks_done:89,budget:40000,team:"Support",notes:""},
+  {project:"Analytics dashboard v2",owner:"Marco V.",status:"delayed",progress:52,health:"Red",start_date:_d(-60),due_date:_d(-3),milestone:"Beta feedback",tasks_total:44,tasks_done:23,budget:110000,team:"Data",notes:"Awaiting design sign-off."},
+  {project:"Onboarding automation",owner:"Sam O.",status:"on track",progress:61,health:"Green",start_date:_d(-35),due_date:_d(25),milestone:"Email sequences",tasks_total:28,tasks_done:17,budget:50000,team:"Growth",notes:""},
+  {project:"Infra cost optimization",owner:"Dana K.",status:"at risk",progress:40,health:"Amber",start_date:_d(-45),due_date:_d(18),milestone:"Rightsizing",tasks_total:32,tasks_done:13,budget:0,team:"Infra",notes:"Savings behind target."},
+  {project:"Partner portal",owner:"Alex R.",status:"on track",progress:48,health:"Green",start_date:_d(-20),due_date:_d(50),milestone:"Auth integration",tasks_total:50,tasks_done:24,budget:130000,team:"Platform",notes:""},
+  {project:"Legacy system sunset",owner:"Lee C.",status:"done",progress:100,health:"Green",start_date:_d(-150),due_date:_d(-30),milestone:"Decommission",tasks_total:64,tasks_done:64,budget:75000,team:"Engineering",notes:"Fully retired; savings realized."}
+];
+bootApp(()=>Promise.resolve(SAMPLE_ROWS));
+</script>
+</body>
+</html>

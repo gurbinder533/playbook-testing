@@ -1,0 +1,39 @@
+---
+schema_version: 1
+title: "AI Project Tracker"
+description: "Live portfolio dashboard — active / on-track / at-risk / completed KPIs, progress-by-project bars, a status distribution, an AI at-risk & overdue list, and a searchable projects table (with per-project detail and an AI status summary), bound to your room's project data."
+icon: analytics-up
+accent_color: "#2563eb"
+
+# Single-page bespoke bundle: the uploaded dashboard's own in-page tabs (Projects
+# Overview / Projects) are the navigation, so there are no extra pages. One route
+# renders the whole app, unchanged in design — only its data is live.
+routes:
+  - path: home
+    module: pages/home.js
+    title: "AI Project Tracker"
+    home: true
+
+styles:
+  - styles.css
+
+# The one live data source every page reads at view time via ctx.db. Never baked in.
+# `<id>:<tag>` is the canonical feature-view ref from the inventory. No source is set
+# below, because a wrong one is worse than none: write the real projects feature
+# view's ref there when building for a room. `kind: pipeline` = a data pipeline syncs
+# projects (Jira/Asana/Linear/Monday/ClickUp) into one row per project and keeps
+# status current.
+data:
+  - id: projects
+    label: "Projects"
+    # Bind this to a feature view in the room before the app can run:
+    # source: /table/<ledger id>:<tag>
+    produced_by:
+      kind: pipeline
+      pipeline: "Project Sync"
+
+# Pipeline-backed data → a refresh pulls the data pipeline's latest run.
+refresh:
+  mode: feature_view
+  seconds: 0
+engine: "1.32.0"

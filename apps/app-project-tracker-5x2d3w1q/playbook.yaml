@@ -1,0 +1,139 @@
+schema_version: 1
+title: AI Project Tracker App
+description: >
+  A live portfolio dashboard — an active / on-track / at-risk / completed KPI strip,
+  progress-by-project bars, a status distribution, an AI at-risk & overdue list, and
+  a
+  sortable/searchable projects table with per-project detail (and an AI status
+  summary) — bound to your room's project data and always current.
+icon: "analytics-up"
+accent_color: "#2563eb"
+category: Apps
+tags:
+  - app
+  - project management
+  - projects
+  - milestones
+  - tasks
+  - gantt
+  - portfolio
+  - dashboard
+
+fields:
+  - key: app_title
+    label: App name
+    type: text
+    required: true
+    default_value: "Project Tracker"
+    placeholder: "e.g. Project Tracker"
+
+  - key: tool
+    label: Where your projects live
+    type: select
+    required: true
+    default_value: jira
+    description: >
+      Pick the project-management tool this app should pull from. Only the connector
+      for the tool you choose is required.
+    options:
+      - value: jira
+        label: Jira
+        hint: "Pull projects, epics, status and due dates from Jira."
+      - value: asana
+        label: Asana
+        hint: "Pull projects, tasks, status and due dates from Asana."
+      - value: linear
+        label: Linear
+        hint: "Pull projects, progress and target dates from Linear."
+      - value: monday
+        label: Monday.com
+        hint: "Pull boards, items, status and timelines from Monday.com."
+      - value: clickup
+        label: ClickUp
+        hint: "Pull spaces, lists, tasks and status from ClickUp."
+
+  - key: advanced_source
+    label: Specific data source (optional)
+    type: text
+    required: false
+    description: >
+      Advanced. Pin the app to one exact project data source by name. Leave blank
+      and
+      the builder picks the matching project data already connected to this room.
+    placeholder: "e.g. jira_projects"
+
+connector_requirements:
+  - id: jira
+    label: Jira
+    origin_includes: atlassian
+    reason: "Source projects/epics (status, owner, due date, progress) via the Jira
+      Cloud API so the portfolio stays current."
+    required_when:
+      field: tool
+      equals: jira
+  - id: asana
+    label: Asana
+    origin_includes: asana.com
+    reason: "Source projects and tasks (assignee, status, due date, completion) via
+      the Asana API so the portfolio stays current."
+    required_when:
+      field: tool
+      equals: asana
+  - id: linear
+    label: Linear
+    origin_includes: linear.app
+    reason: "Source projects (progress, target date, lead, status) via the Linear
+      API so the portfolio stays current."
+    required_when:
+      field: tool
+      equals: linear
+  - id: monday
+    label: Monday.com
+    origin_includes: monday.com
+    reason: "Source boards and items (status, owner, timeline) via the Monday.com
+      API so the portfolio stays current."
+    required_when:
+      field: tool
+      equals: monday
+  - id: clickup
+    label: ClickUp
+    origin_includes: clickup.com
+    reason: "Source lists and tasks (status, assignee, due date, progress) via the
+      ClickUp API so the portfolio stays current."
+    required_when:
+      field: tool
+      equals: clickup
+
+message_template: |
+  Build the "{{app_title}}" project tracker from the {{tool}} project data in this room.
+  {{#advanced_source}}Use this data source: {{advanced_source}}.
+  {{/advanced_source}}
+
+steps:
+  - Find the room's project data from {{tool}} — one row per project with an 
+    owner, status, progress and due date
+  - Bind this app's own app.yaml (data source) to it — edit in place, don't 
+    rebuild
+  - Reconcile pages/home.js's SQL column names (project, owner, status, 
+    progress, start_date, due_date, milestone, tasks_total, tasks_done, team …) 
+    to the real schema and publish the live app
+
+example: >
+  Bind this room's {{tool}} projects to the portfolio dashboard that already ships
+  with this skill: a single-page app with a Projects Overview tab (an active /
+  on-track / at-risk / completed KPI strip, progress-by-project bars, a status
+  distribution, and an AI at-risk & overdue list) and a Projects tab (a sortable,
+  searchable table with status badges, task completion, CSV export and a per-project
+  detail drawer with an AI status summary). The design is finished — just edit
+  app.yaml to point at the chosen tool's data and reconcile pages/home.js's SQL column
+  names to this room's schema. Never regenerate the design.
+
+final_output: >
+  A live project tracking web app (this skill's own app.yaml + pages/home.js +
+  styles.css) bound in place to your room's project data — opens current and refreshes
+  live, with its portfolio design unchanged.
+github:
+  owner: gurbinder533
+  repo: playbook-testing
+  branch: main
+  path: apps/app-project-tracker-5x2d3w1q
