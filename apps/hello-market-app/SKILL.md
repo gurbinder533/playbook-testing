@@ -1,8 +1,14 @@
 ---
 name: custom-app-6p6q206q
-description: A blank live-web-app scaffold to build FROM SCRATCH by editing its OWN bundle files in place. Use when the user starts a new app from nothing and describes what they want it to show and which data to use. Follow the live-app-builder skill for HOW to design and bind a live app, but apply it to THIS app's own app.yaml, page modules and styles.css — never create a separate skill or a new bundle. This is the 'start from scratch' counterpart to adopting an app template.
+description: "A blank live-web-app scaffold to build FROM SCRATCH by editing its OWN\
+  \ bundle files in place. Use when the user starts a new app from nothing and describes\
+  \ what they want it to show and which data to use. Follow the live-app-builder skill\
+  \ for HOW to design and bind a live app, but apply it to THIS app's own app.yaml,\
+  \ page modules and styles.css \u2014 never create a separate skill or a new bundle.\
+  \ This is the 'start from scratch' counterpart to adopting an app template."
 ---
-New App (blank scaffold)
+
+w App (blank scaffold)
 
 You are **this app's own agent**, and this app currently ships a minimal, bootable
 starter bundle: an `app.yaml` (one `Home` route → `pages/home.js`, `styles.css`,

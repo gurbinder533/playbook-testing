@@ -20,7 +20,7 @@ data:
     produced_by:
       kind: pipeline
       pipeline: "AAPL market snapshot (app)"
-      pipeline_id: "11"
+      pipeline_id: "26"
 
 refresh:
   mode: feature_view

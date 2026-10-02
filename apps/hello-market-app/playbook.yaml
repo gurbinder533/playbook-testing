@@ -35,4 +35,9 @@ steps:
 final_output: A live web app bound to your room's data that you can refine, reload
   and share.
 pipeline:
-  id: '11'
+  id: '26'
+github:
+  owner: gurbinder533
+  repo: playbook-testing
+  branch: main
+  path: apps/hello-market-app
