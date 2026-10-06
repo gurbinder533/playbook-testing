@@ -1,0 +1,55 @@
+schema_version: 1
+title: "Walnut Chess Club"
+description: "Sign in, see who is online, challenge a player and play chess live."
+icon: sparkles
+accent_color: "#8B5A2B"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Lobby"
+    home: true
+  - path: game/:id
+    module: pages/game.js
+    title: "Game"
+    hidden: true
+
+styles:
+  - styles.css
+
+data:
+  - id: presence
+    label: "Players online (heartbeats)"
+    source: /table/presence
+    produced_by:
+      kind: source
+  - id: challenges
+    label: "Challenges"
+    source: /table/challenges
+    produced_by:
+      kind: source
+  - id: responses
+    label: "Challenge responses"
+    source: /table/responses
+    produced_by:
+      kind: source
+  - id: moves
+    label: "Moves"
+    source: /table/moves
+    produced_by:
+      kind: source
+
+writes:
+  - id: presence
+    label: "Players online (heartbeats)"
+    target: /database/presence
+  - id: challenges
+    label: "Challenges"
+    target: /database/challenges
+  - id: responses
+    label: "Challenge responses"
+    target: /database/responses
+  - id: moves
+    label: "Moves"
+    target: /database/moves
+engine: "1.32.0"
