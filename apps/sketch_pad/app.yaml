@@ -1,0 +1,36 @@
+schema_version: 1
+title: Sketchpad
+description: A private, hand-drawn style whiteboard. Sign in, organise diagrams 
+  into projects, and keep everything end-to-end encrypted.
+icon: sparkles
+accent_color: '#6965db'
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: Projects
+    home: true
+  - path: project/:id
+    module: pages/project.js
+    title: Project
+    hidden: true
+  - path: draw/:id
+    module: pages/draw.js
+    title: Drawing
+    hidden: true
+
+styles:
+  - styles.css
+
+data:
+  - id: recs
+    label: Encrypted records
+    source: /table/recs
+    produced_by:
+      kind: source
+
+writes:
+  - id: recs
+    label: Encrypted records
+    target: /database/recs
+engine: "1.32.0"
