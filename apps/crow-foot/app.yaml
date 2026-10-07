@@ -1,0 +1,16 @@
+---
+schema_version: 1
+title: "Crow's Foot"
+description: "A dashboard for the GitHub pull requests that need your attention. GitHub connections are switched off while the app is redesigned."
+icon: sparkles
+accent_color: "#7c4dff"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Pull requests"
+    home: true
+
+styles:
+  - styles.css
+engine: "1.32.0"
