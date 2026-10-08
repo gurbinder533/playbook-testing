@@ -1,0 +1,52 @@
+id,kind,x1,y1,x2,y2,label
+1,outline,616,156,0,0,
+2,outline,1125,156,0,0,
+3,outline,1121,1730,0,0,
+4,outline,1039,1730,0,0,
+5,outline,1039,1824,0,0,
+6,outline,405,1824,0,0,
+7,outline,405,1303,0,0,
+8,outline,462,1303,0,0,
+9,outline,462,944,0,0,
+10,outline,572,944,0,0,
+11,outline,572,820,0,0,
+12,outline,616,820,0,0,
+13,wall,616,156,1125,156,Upper boundary
+14,wall,1125,156,1121,1730,Right boundary
+15,wall,1121,1730,1039,1730,Lower recess
+16,wall,1039,1730,1039,1824,Lower recess
+17,wall,1039,1824,405,1824,Lower boundary
+18,wall,405,1824,405,1303,Left boundary
+19,wall,405,1303,462,1303,Left recess
+20,wall,462,1303,462,944,Left boundary
+21,wall,462,944,477,944,Door jamb
+22,wall,547,944,572,944,Door jamb
+23,wall,572,944,572,905,Entry return
+24,wall,572,835,572,820,Door jamb
+25,wall,572,820,616,820,Entry recess
+26,wall,616,820,616,156,Upper left boundary
+27,wall,572,944,572,1060,Inner return
+28,wall,696,1060,1121,1060,Upper partition
+29,wall,696,1060,696,1084,Partition jamb
+30,marked,696,1084,696,1248,Blue-marked segment A
+31,wall,696,1318,696,1330,Partition jamb
+32,wall,696,1330,1121,1330,Lower partition
+33,wall,405,1549,423,1549,Partition jamb
+34,marked,423,1549,532,1549,Blue-marked segment B
+35,wall,532,1549,540,1549,Partition jamb
+36,wall,612,1549,622,1549,Partition corner
+37,wall,622,1549,622,1824,Lower enclosure wall
+38,block,572,1008,618,1060,Heavy plan block A
+39,block,1022,998,1121,1054,Heavy plan block B
+40,block,573,1725,622,1824,Heavy plan block C
+41,counter,407,1310,462,1452,Sink counter
+42,sink,418,1328,451,1366,Sink symbol
+43,door,572,835,572,905,Upper door
+44,door,547,944,477,944,Left door
+45,door,696,1318,696,1248,Enclosure door
+46,door,612,1549,540,1549,Lower door
+47,label,870,630,0,0,Upper open area
+48,label,905,1190,0,0,Enclosed area
+49,label,850,1560,0,0,Lower open area
+50,label,506,1700,0,0,Small enclosure
+51,label,509,1430,0,0,Sink

@@ -1,0 +1,85 @@
+schema_version: 1
+title: Suite 530 · Spatial study
+description: A proportionally traced architectural model of Exhibit A, with 
+  explicit adjustable dimensional assumptions.
+icon: sparkles
+accent_color: '#4D7068'
+routes:
+  - path: home
+    module: pages/projects.js
+    title: Projects
+    home: true
+  - path: project/:id/setup
+    module: pages/setup.js
+    title: Setup
+    hidden: true
+  - path: project/:id/plan
+    module: pages/plan.js
+    title: Floor plan
+    hidden: true
+  - path: project/:id/furnishing
+    module: pages/furnishing.js
+    title: Furnishing
+    hidden: true
+  - path: project/:id/realistic
+    module: pages/realistic.js
+    title: Realistic view
+    hidden: true
+  - path: project/:id
+    module: pages/home.js
+    title: 3D model
+    hidden: true
+styles:
+  - styles.css
+  - mobile.css
+  - furnishing.css
+  - realistic.css
+  - walk.css
+  - projects.css
+data:
+  - id: geometry
+    label: Suite 530 interpreted drawing geometry
+    source: /table/geometry
+  - id: projects
+    label: Floor-plan projects (private to each person)
+    source: /table/projects
+    produced_by:
+      kind: source
+  - id: images
+    label: Uploaded plans and photos (private to each person)
+    source: /table/images
+    produced_by:
+      kind: source
+  - id: traces
+    label: Traced plan geometry (private to each person)
+    source: /table/traces
+    produced_by:
+      kind: source
+writes:
+  - id: projects
+    label: Projects
+    target: /database/projects
+  - id: images
+    label: Images
+    target: /database/images
+  - id: traces
+    label: Traces
+    target: /database/traces
+catalogs:
+  - source: geometry
+    entity: traced element
+    key: id
+    of:
+      id: {role: dimension, label: Element ID}
+      kind: {role: dimension, label: Element type}
+      label: {role: dimension, label: Interpretation}
+      x1: {role: dimension, label: Drawing x1 in raster pixels}
+      y1: {role: dimension, label: Drawing y1 in raster pixels}
+      x2: {role: dimension, label: Drawing x2 in raster pixels}
+      y2: {role: dimension, label: Drawing y2 in raster pixels}
+    dimensions:
+      - {name: kind, label: Element type, column: kind}
+    measures:
+      - {name: elements, label: Traced elements, expr: {rows: true}, agg: count, 
+          adds: true}
+engine: "1.32.0"
