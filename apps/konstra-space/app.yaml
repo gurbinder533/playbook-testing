@@ -1,0 +1,180 @@
+schema_version: 1
+title: "SPACE Plan Reading Console"
+description: "Konstra's console for SPACE plan reading: reads and failed checks, home\n\
+  \  type templates, reader feedback, ground truth, reader versions and sign-offs."
+icon: analytics-up
+accent_color: "#5F6F4B"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Overview"
+    home: true
+  - path: reads
+    module: pages/reads.js
+    title: "Plan reads"
+  - path: review
+    module: pages/review.js
+    title: "Review"
+  - path: templates
+    module: pages/templates.js
+    title: "Templates"
+  - path: feedback
+    module: pages/feedback.js
+    title: "Feedback"
+  - path: quality
+    module: pages/quality.js
+    title: "Ground truth"
+  - path: cycles
+    module: pages/cycles.js
+    title: "Sign-offs"
+  - path: upload
+    module: pages/upload.js
+    title: "Upload a plan"
+
+styles:
+  - styles.css
+
+data:
+  - id: reads
+    label: "Plan reads with template checks"
+    source: /table/reads
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: detections
+    label: "Plan detections"
+    source: /table/detections
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: requests
+    label: "Plan read requests"
+    source: /table/requests
+  - id: templates
+    label: "Home type templates"
+    source: /table/templates
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: constants
+    label: "Constants"
+    source: /table/constants
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: checks
+    label: "Reader checks"
+    source: /table/checks
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: sources
+    label: "Sources"
+    source: /table/sources
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: questions
+    label: "Upload questions"
+    source: /table/questions
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: fbplan
+    label: "Feedback per plan"
+    source: /table/fbplan
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: fbtt
+    label: "Feedback by template and source"
+    source: /table/fbtt
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: fbtag
+    label: "Feedback by tag"
+    source: /table/fbtag
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: rules
+    label: "Reader rules"
+    source: /table/rules
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: truth
+    label: "Ground truth plans"
+    source: /table/truth
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: versions
+    label: "Reader versions"
+    source: /table/versions
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: rplans
+    label: "Reader results per reference plan"
+    source: /table/rplans
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: rspec
+    label: "Reader spec results"
+    source: /table/rspec
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+  - id: comments
+    label: "Review pins and comments"
+    source: /table/comments
+  - id: decisions
+    label: "Review decisions"
+    source: /table/decisions
+  - id: cycles
+    label: "Sign-offs and revisions"
+    source: /table/cycles
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE parameters (app)"
+      pipeline_id: "20451"
+
+writes:
+  - id: requests
+    label: "Plan read requests"
+    target: /database/requests
+  - id: comments
+    label: "Review pins and comments"
+    target: /database/comments
+  - id: decisions
+    label: "Review decisions"
+    target: /database/decisions
+
+pipelines:
+  - id: run_all
+    label: "Run the SPACE pipeline"
+    target: /pipeline/20451
+
+refresh:
+  mode: feature_view
+  seconds: 0
+engine: "1.32.0"
