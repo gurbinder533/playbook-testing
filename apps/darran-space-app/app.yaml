@@ -1,0 +1,35 @@
+schema_version: 1
+title: "SPACE"
+description: "SPACE Studio running as you built it, with Corvic Plan Read behind the
+  Upload step."
+icon: sparkles
+accent_color: "#B99A81"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Studio"
+    home: true
+
+styles:
+  - styles.css
+
+data:
+  - id: reads
+    label: "Plan reads"
+    source: /table/reads
+    produced_by:
+      kind: pipeline
+      pipeline: "SPACE Plan Read (app)"
+      pipeline_id: "18685"
+
+writes:
+  - id: requests
+    label: "Plan read requests"
+    target: /database/requests
+
+pipelines:
+  - id: plan_read
+    label: "Read uploaded plans"
+    target: /pipeline/18685
+engine: "1.32.0"

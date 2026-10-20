@@ -1,0 +1,36 @@
+/* PROPOSED, NOT YET IN THE LIVE SITE.
+   SPACE Studio: accept a Corvic Plan Read result and load it as the Read proposal.
+   Add to src/ and inject with patch_studio_trace.py once approved.
+
+   Host (SPACE site, KAI or Corvic app) posts:
+     { type: 'space:read-result', result: <space.read.result/1> }
+*/
+(function () {
+  function loadReadResult(res) {
+    if (!res || !res.model || !Array.isArray(res.model.walls)) { toast('Read result had no walls'); return; }
+    const m = res.model;
+    STATE.file = m.file || STATE.file || 'Uploaded plan';
+    STATE.kind = m.kind || 'HDB';
+    STATE.walls = m.walls.map(w => Object.assign({ type: 'full', state: 'existing', opens: [] }, w));
+    STATE.pillars = m.pillars || [];
+    STATE.progAt = (m.labels || []).map(l => Object.assign({ conf: false, area: 0 }, l));
+    STATE.floorAt = []; STATE.items = []; STATE.carp = []; STATE.log = [];
+    STATE.rev = 0; STATE.maxSeen = 0; STATE.locked = false; STATE.structOK = null;
+    STATE.sub = 'walls'; STATE.selWall = null; STATE.selItem = null; STATE.selRoom = null;
+    // Real reading quality from Corvic, replacing the placeholder on the Read screen
+    STATE.readConf = Math.round((res.read_conf || 0) * 100) || null;
+    STATE.readLow = res.low_conf_walls || m.walls.filter(w => (w.conf || 1) < 0.8).map(w => w.id);
+    if (window.stClassify) window.stClassify();          // structure: S / C / N from thickness
+    recompute('Plan read by SPACE: ' + STATE.file);
+    go(1);                                               // land on Read so a person checks it
+  }
+  window.addEventListener('message', e => {
+    const d = e.data || {};
+    if (d.type === 'space:read-result' && e.source === window.parent) loadReadResult(d.result);
+  });
+  window.loadReadResult = loadReadResult;
+})();
+
+/* And in readStats(), use the real list when present:
+     const low = STATE.readLow || STATE.walls.filter((w,i)=>i%7===3).map(w=>w.id);
+*/
