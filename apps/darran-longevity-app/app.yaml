@@ -1,0 +1,52 @@
+schema_version: 1
+title: "no.other - Longevity AI"
+description: "One dashboard for a person's whole health record: longitudinal lab trends,
+  body composition, a spin-able 3D body map with callouts, multi-metric signals, root-cause
+  analysis and PubMed-referenced longevity protocols. Every page is computed from
+  one normalised records table extracted from the uploaded health files."
+icon: sparkles
+accent_color: "#3EE0C4"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Overview"
+    home: true
+  - path: body
+    module: pages/body.js
+    title: "3D Body Map"
+  - path: trends
+    module: pages/trends.js
+    title: "Trends"
+  - path: composition
+    module: pages/composition.js
+    title: "Body Composition"
+  - path: signals
+    module: pages/signals.js
+    title: "Signals"
+  - path: rootcause
+    module: pages/rootcause.js
+    title: "Root Cause"
+  - path: protocols
+    module: pages/protocols.js
+    title: "Protocols"
+  - path: records
+    module: pages/records.js
+    title: "Records & Genetics"
+  - path: references
+    module: pages/references.js
+    title: "Literature References"
+
+styles:
+  - styles.css
+  - extras.css
+
+data:
+  - id: rec
+    label: "Health records (normalised)"
+    source: /table/rec
+  - id: proto
+    label: "Protocols (written after the analysis)"
+    source: /table/proto
+
+engine: "1.32.0"

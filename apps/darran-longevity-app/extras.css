@@ -1,0 +1,7 @@
+.pill.mut{background:#8ea0c426;color:var(--muted)}.pill.na{background:#8ea0c426;color:var(--muted)}.mcard.s-na{border-left-color:#5b6b8c}
+.upnote{margin-bottom:0;color:var(--muted);font-size:13px;border-style:dashed}.upnote b{color:var(--ink)}
+.tg{list-style:none;padding:0;margin:6px 0 0}.tg li{margin:8px 0;line-height:1.5}.tline{font-size:13px;color:var(--ink)}
+.tchip{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;border:1px solid;text-decoration:none;margin-right:6px;white-space:nowrap}
+.tchip.sig{background:#ff7a5922;color:#ffb199;border-color:#ff7a5966}.tchip.rc{background:#5cc8ff22;color:#a9e2ff;border-color:#5cc8ff66}.tchip.tr{background:#3ee0c422;color:#9af0de;border-color:#3ee0c466}.tchip.gone{background:#8ea0c422;color:var(--muted);border-color:#8ea0c444}
+@media (max-width:900px){.tchip{white-space:normal;max-width:100%;border-radius:12px}.tg li,.tfact,.tline{overflow-wrap:anywhere}}
+.tchip:hover{filter:brightness(1.25)}.tfact{font-size:12px;color:var(--muted);margin:2px 0 0 2px}
