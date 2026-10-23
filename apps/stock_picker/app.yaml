@@ -1,0 +1,44 @@
+schema_version: 1
+title: "My Watchlist"
+description: "A private stock watchlist with the latest prices. Only you see your
+  list."
+icon: sparkles
+accent_color: "#4DA6A0"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Watchlist"
+    home: true
+
+styles:
+  - styles.css
+
+data:
+  - id: watchlist
+    label: "Watchlist entries"
+    source: /table/watchlist
+    produced_by:
+      kind: source
+  - id: prices
+    label: "Latest prices"
+    source: /table/prices
+    produced_by:
+      kind: pipeline
+      pipeline: "Stock Watchlist Prices (app)"
+      pipeline_id: "22393"
+
+writes:
+  - id: watchlist
+    label: "Watchlist entries"
+    target: /database/watchlist
+
+pipelines:
+  - id: update_prices
+    label: "Update prices"
+    target: /pipeline/22393
+
+refresh:
+  mode: feature_view
+  seconds: 0
+engine: "1.32.0"
