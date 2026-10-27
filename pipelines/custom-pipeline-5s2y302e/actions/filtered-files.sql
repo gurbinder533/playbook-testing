@@ -1,0 +1,1 @@
+SELECT * FROM "6:file" WHERE mime_type = 'image/jpeg' AND size >= 50000

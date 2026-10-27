@@ -1,0 +1,18 @@
+schema_version: 2
+definition:
+  name: New Data Pipeline
+  description: A blank data pipeline scaffold to build FROM SCRATCH in the pipeline this bundle sits inside. Use when the user starts a new pipeline from nothing and describes the data to start from and what it should produce. Follow the data-pipeline-creation skill for HOW to build (actions, the tables between them, running and checking), but apply it to THIS pipeline rather than creating another one. This is the 'start from scratch' counterpart to adopting a pipeline template.
+  sources:
+  - key: receipts
+    data_source: receipts
+  actions:
+  - key: filtered-files
+    kind: execute_sql
+    inputs:
+    - receipts
+    config:
+      output_name: filtered_files
+    code: actions/filtered-files.sql
+    outputs:
+    - filtered_files/output
+    - filtered_files/error
