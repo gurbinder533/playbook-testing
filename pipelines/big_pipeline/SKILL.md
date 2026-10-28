@@ -1,5 +1,5 @@
 ---
-name: custom-pipeline-2s0i0z6d
+name: custom-pipeline-2s0i0z6d-v2
 description: A blank data pipeline scaffold to build FROM SCRATCH in the pipeline
   this bundle sits inside. Use when the user starts a new pipeline from nothing and
   describes the data to start from and what it should produce. Follow the data-pipeline-creation
