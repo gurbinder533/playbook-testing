@@ -1,1 +1,1 @@
-SELECT * FROM "7:output" WHERE size >= 50000
+SELECT * FROM "@filtered-files:output" WHERE size >= 50000

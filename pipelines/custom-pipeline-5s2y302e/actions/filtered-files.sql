@@ -1,1 +1,1 @@
-SELECT * FROM "6:file" WHERE mime_type = 'image/jpeg'
+SELECT * FROM "@receipts:file" WHERE mime_type = 'image/jpeg'
