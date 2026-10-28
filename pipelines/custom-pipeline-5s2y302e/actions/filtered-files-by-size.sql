@@ -1,0 +1,1 @@
+SELECT * FROM "7:output" WHERE size >= 50000

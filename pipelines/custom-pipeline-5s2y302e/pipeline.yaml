@@ -8,6 +8,7 @@ definition:
   actions:
   - key: filtered-files
     kind: execute_sql
+    description: 'Filter 1: keep only JPEG files'
     inputs:
     - receipts
     config:
@@ -16,3 +17,13 @@ definition:
     outputs:
     - filtered_files/output
     - filtered_files/error
+  - key: filtered-files-by-size
+    kind: execute_sql
+    inputs:
+    - filtered-files
+    config:
+      output_name: filtered_files_by_size
+    code: actions/filtered-files-by-size.sql
+    outputs:
+    - filtered_files_by_size/output
+    - filtered_files_by_size/error
