@@ -1,0 +1,1 @@
+SELECT concat_ws('|', start_id, edge_type, end_id) AS __corvic_surrogate_id, start_id, end_id, edge_type, count(*) AS mention_count FROM "@receipt-triples:output" WHERE edge_type = 'CONTAINS' AND end_id IS NOT NULL AND end_id <> '' GROUP BY start_id, end_id, edge_type

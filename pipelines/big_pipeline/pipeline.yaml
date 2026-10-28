@@ -1,0 +1,192 @@
+schema_version: 2
+definition:
+  sources:
+  - key: receipts
+    data_source: receipts
+  actions:
+  - key: receipt-text
+    kind: parse
+    inputs:
+    - receipts
+    config:
+      output_name: receipt_text
+    outputs:
+    - receipt_text/text
+    - receipt_text/relationship
+    - receipt_text/image
+  - key: receipt-chunks
+    kind: execute_python
+    inputs:
+    - receipt-text
+    config:
+      output_name: receipt_chunks
+    code: actions/receipt-chunks.py
+    outputs:
+    - receipt_chunks/output
+    - receipt_chunks/code
+    - receipt_chunks/error
+  - key: receipt-extractions
+    kind: llm_augment
+    inputs:
+    - receipt-chunks
+    config:
+      input_column_names:
+      - chunk_text
+      model_type: MODEL_TYPE_CLAUDE_SONNET_5_5
+      output_column_specs:
+      - description: The entities and relationships found in this passage, as the JSON object the prompt specifies.
+        name: extraction_json
+      output_name: receipt_extractions
+      user_query: 'Extract entities and relationships from the receipt text, using ONLY the types below.
+
+
+        ENTITY TYPES
+
+        - Merchant: The store or business that issued the receipt.
+
+        - Receipt (date, total): One receipt, identified by its receipt or transaction number (or merchant name plus date when none is printed).
+
+        - Item: A product or service line purchased on a receipt.
+
+
+        RELATIONSHIP TYPES
+
+        - ISSUED: Merchant -> Receipt. The merchant issued the receipt.
+
+        - CONTAINS: Receipt -> Item. The receipt lists the item as a purchased line.
+
+
+        RULES
+
+        - Extract only what the passage states. Never infer, complete or guess a fact that is not written, and never use outside knowledge.
+
+        - Use the entity''s most complete name as written in the passage.
+
+        - Fill "of" only with the listed columns (date, total for Receipt), and only where the passage states a value. Omit a column the passage does not give; an empty "of" is normal. Give total as a plain number without currency symbol.
+
+        - Emit a relationship only when both endpoints are entities you also emit, and the endpoint types match the relationship''s declared direction.
+
+        - Skip anything that does not fit a listed type. A passage with nothing to extract is normal and must return empty arrays.
+
+        - Return ONLY minified JSON, no prose, no code fences.
+
+
+        OUTPUT
+
+        {"entities":[{"name":"...","type":"...","of":{"column":"value"}}],"relationships":[{"from":"...","from_type":"...","type":"...","to":"...","to_type":"...","of":{}}]}'
+    outputs:
+    - receipt_extractions/llm_augment
+    - receipt_extractions/error
+  - key: receipt-triples
+    kind: execute_python
+    inputs:
+    - receipt-extractions
+    config:
+      output_name: receipt_triples
+    code: actions/receipt-triples.py
+    outputs:
+    - receipt_triples/output
+    - receipt_triples/code
+    - receipt_triples/error
+  - key: receipts-contains
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: Receipts contains
+    code: actions/receipts-contains.sql
+    outputs:
+    - Receipts contains/output
+    - Receipts contains/error
+  - key: receipts-issued
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: Receipts issued
+    code: actions/receipts-issued.sql
+    outputs:
+    - Receipts issued/output
+    - Receipts issued/error
+  - key: receipts-items
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: Receipts items
+    code: actions/receipts-items.sql
+    outputs:
+    - Receipts items/output
+    - Receipts items/error
+  - key: receipts-merchants
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: Receipts merchants
+    code: actions/receipts-merchants.sql
+    outputs:
+    - Receipts merchants/output
+    - Receipts merchants/error
+  - key: receipts-receipts
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: Receipts receipts
+    code: actions/receipts-receipts.sql
+    outputs:
+    - Receipts receipts/output
+    - Receipts receipts/error
+  - key: receipts-graph
+    kind: build_graph
+    inputs:
+    - receipts-contains
+    - receipts-issued
+    - receipts-items
+    - receipts-merchants
+    - receipts-receipts
+    config:
+      feature_view_feature_type_overrides:
+      - feature_type_overrides:
+        - column_name: node_id
+          feature_type:
+            primary_key: {}
+        feature_view_id: '@receipts-items'
+      - feature_type_overrides:
+        - column_name: node_id
+          feature_type:
+            primary_key: {}
+        feature_view_id: '@receipts-merchants'
+      - feature_type_overrides:
+        - column_name: node_id
+          feature_type:
+            primary_key: {}
+        feature_view_id: '@receipts-receipts'
+      - feature_type_overrides:
+        - column_name: start_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@receipts-merchants'
+        - column_name: end_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@receipts-receipts'
+        feature_view_id: '@receipts-issued'
+      - feature_type_overrides:
+        - column_name: start_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@receipts-receipts'
+        - column_name: end_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@receipts-items'
+        feature_view_id: '@receipts-contains'
+      graph_entity_feature_view_ids:
+      - '@receipts-items'
+      - '@receipts-merchants'
+      - '@receipts-receipts'
+      output_name: Receipts graph
+    outputs:
+    - Receipts graph

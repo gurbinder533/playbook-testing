@@ -1,0 +1,135 @@
+schema_version: 1
+category: Pipelines
+tags:
+  - pipeline
+  - blank
+  - scratch
+  - builder
+title: New Data Pipeline
+description: A blank data pipeline to build from scratch. Tell its own agent 
+  what it should produce and it designs the actions and the tables they hand 
+  along right here — or say nothing, and it reads what the room already holds 
+  and proposes something. Then you refine, run or schedule it.
+icon: sparkles
+accent_color: '#3f7fb0'
+example: Pull last quarter's support tickets, classify each one by theme, and 
+  leave a table of themes with counts and example tickets.
+
+fields:
+  - key: pipeline_goal
+    label: What should this pipeline produce?
+    type: textarea
+    required: false
+    description: Optional. Describe it in plain language — which of the room's 
+      data to start from, what to do to it, and what should be sitting there 
+      when it finishes. Leave it blank and its agent will read what the room 
+      holds and propose something to build from that.
+    placeholder: Pull last quarter's support tickets, classify each one by 
+      theme, and leave a table of themes with counts and example tickets.
+
+# The goal is optional, so the brief is a section rather than a fixed block: with
+# nothing typed the message is just the opening line, and SKILL.md is what tells
+# the agent to open by reading the room instead. Putting words in the user's
+# message that the user did not type would be the alternative, and the agent
+# cannot tell those apart from a real brief.
+message_template: |-
+  Build out this data pipeline from scratch.
+  {{#pipeline_goal}}
+  What it should produce:
+  {{pipeline_goal}}
+
+  Design the actions and the tables they hand along.
+  {{/pipeline_goal}}
+  Build it in THIS pipeline — I'll refine it afterward.
+
+steps:
+  - Describe what it should produce, or leave it blank
+  - Its agent designs the actions and builds them
+  - Refine, then run or schedule it
+
+final_output: A data pipeline over your room's data that you can refine, run and
+  schedule.
+
+# The procedure `data-pipeline-creation` sets out, as the stages a run reports
+# against. It is declared here rather than discovered per pipeline because the
+# order is the same every time -- read the data before designing over it, declare
+# the whole graph before running any of it -- and because this is where every
+# other bundle's plan lives, which is what the surface reads.
+plan:
+  - id: inputs
+    label: Read what the room already holds
+    produces:
+      - inputs.read
+    details: Inventories the room's tables and sources, then previews and 
+      profiles the ones this pipeline would start from — column types, sizes, 
+      how the keys line up. Nothing is designed over data that hasn't been 
+      looked at. Produces inputs.read.
+    tools:
+      - list_data_sources
+      - execute_sql
+      - get_environment_delta
+  - id: design
+    label: Design the chain, reusing what is already built
+    depends_on:
+      - inputs
+    produces:
+      - design.settled
+    details: Checks whether an existing pipeline output already holds the result
+      — reuse before building — then picks the shape the work takes and settles 
+      the steps and the tables they hand along. Reads the matching pattern file 
+      rather than inventing a shape. Produces design.settled.
+    tools:
+      - use_skill
+      - execute_sql
+      - list_pipelines
+  - id: declare
+    label: Declare the graph without running it
+    depends_on:
+      - design
+    produces:
+      - pipeline.declared
+    details: Adds the sources and one action per step, in order, so the whole 
+      chain exists before anything executes. Nothing runs as it is added, which 
+      is what makes the next stage able to check it for free. Produces 
+      pipeline.declared.
+    tools:
+      - add_pipeline_source
+      - add_pipeline_action
+      - get_pipeline
+  - id: verify
+    label: Check the graph before it costs anything
+    depends_on:
+      - declare
+    produces:
+      - pipeline.verified
+    details: Reads the declared graph back and confirms each step's refs are 
+      wired to the output it meant and the schemas are what the next step 
+      expects. A wrong ref found here costs nothing; found after a run it costs 
+      the run. Produces pipeline.verified.
+    tools:
+      - get_pipeline
+      - delete_pipeline_action
+      - add_pipeline_action
+  - id: run
+    label: Run it, then say what it produced
+    depends_on:
+      - verify
+    produces:
+      - pipeline.ran
+    details: Runs the pipeline and watches it through, fixing and re-running 
+      anything that fails, then reports what was built and what is now sitting 
+      in its output tables. Produces pipeline.ran.
+    tools:
+      - run_pipeline
+      - get_pipeline
+      - schedule_pipeline
+
+required_outputs:
+  - design.settled
+  - pipeline.verified
+  - pipeline.ran
+github:
+  owner: gurbinder533
+  repo: playbook-testing
+  branch: main
+  path: pipelines/big_pipeline
