@@ -1,0 +1,187 @@
+schema_version: 2
+definition:
+  sources:
+  - key: 1000-receipt
+    data_source: 1000-receipt
+  actions:
+  - key: receipt-markdown
+    kind: convert_to_markdown
+    inputs:
+    - 1000-receipt
+    config:
+      output_name: Receipt markdown
+    outputs:
+    - Receipt markdown
+  - key: receipt-parsed
+    kind: parse
+    inputs:
+    - 1000-receipt
+    config:
+      output_name: Receipt parsed
+    outputs:
+    - Receipt parsed/text
+    - Receipt parsed/relationship
+    - Receipt parsed/image
+  - key: receipt-extraction
+    kind: transform_rows
+    inputs:
+    - receipt-parsed.image
+    config:
+      output_name: Receipt extraction
+      rows_in_flight: 6
+      rows_per_batch: 12
+    code: actions/receipt-extraction.py
+    outputs:
+    - Receipt extraction/transform_rows
+    - Receipt extraction/error
+  - key: receipt-triples
+    kind: transform_rows
+    inputs:
+    - receipt-extraction
+    config:
+      output_name: Receipt triples
+      rows_per_batch: 1000
+    code: actions/receipt-triples.py
+    outputs:
+    - Receipt triples/transform_rows
+    - Receipt triples/error
+  - key: city-nodes
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: City nodes
+    code: actions/city-nodes.sql
+    outputs:
+    - City nodes/output
+    - City nodes/error
+  - key: contains-edges
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: CONTAINS edges
+    code: actions/contains-edges.sql
+    outputs:
+    - CONTAINS edges/output
+    - CONTAINS edges/error
+  - key: issued-by-edges
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: ISSUED_BY edges
+    code: actions/issued-by-edges.sql
+    outputs:
+    - ISSUED_BY edges/output
+    - ISSUED_BY edges/error
+  - key: item-nodes
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: Item nodes
+    code: actions/item-nodes.sql
+    outputs:
+    - Item nodes/output
+    - Item nodes/error
+  - key: located-in-edges
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: LOCATED_IN edges
+    code: actions/located-in-edges.sql
+    outputs:
+    - LOCATED_IN edges/output
+    - LOCATED_IN edges/error
+  - key: merchant-nodes-2
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: Merchant nodes
+    code: actions/merchant-nodes-2.sql
+    outputs:
+    - Merchant nodes/output
+    - Merchant nodes/error
+  - key: receipt-nodes
+    kind: execute_sql
+    inputs:
+    - receipt-triples
+    config:
+      output_name: Receipt nodes
+    code: actions/receipt-nodes.sql
+    outputs:
+    - Receipt nodes/output
+    - Receipt nodes/error
+  - key: receipt-graph
+    kind: build_graph
+    inputs:
+    - city-nodes
+    - contains-edges
+    - issued-by-edges
+    - item-nodes
+    - located-in-edges
+    - merchant-nodes-2
+    - receipt-nodes
+    config:
+      feature_view_feature_type_overrides:
+      - feature_type_overrides:
+        - column_name: node_id
+          feature_type:
+            primary_key: {}
+        feature_view_id: '@receipt-nodes'
+      - feature_type_overrides:
+        - column_name: node_id
+          feature_type:
+            primary_key: {}
+        feature_view_id: '@city-nodes'
+      - feature_type_overrides:
+        - column_name: node_id
+          feature_type:
+            primary_key: {}
+        feature_view_id: '@item-nodes'
+      - feature_type_overrides:
+        - column_name: node_id
+          feature_type:
+            primary_key: {}
+        feature_view_id: '@merchant-nodes-2'
+      - feature_type_overrides:
+        - column_name: start_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@receipt-nodes'
+        - column_name: end_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@item-nodes'
+        feature_view_id: '@contains-edges'
+      - feature_type_overrides:
+        - column_name: start_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@merchant-nodes-2'
+        - column_name: end_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@city-nodes'
+        feature_view_id: '@located-in-edges'
+      - feature_type_overrides:
+        - column_name: start_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@receipt-nodes'
+        - column_name: end_id
+          feature_type:
+            foreign_key:
+              referenced_source_id: '@merchant-nodes-2'
+        feature_view_id: '@issued-by-edges'
+      graph_entity_feature_view_ids:
+      - '@receipt-nodes'
+      - '@city-nodes'
+      - '@item-nodes'
+      - '@merchant-nodes-2'
+      output_name: Receipt graph
+    outputs:
+    - Receipt graph

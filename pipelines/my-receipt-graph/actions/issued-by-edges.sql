@@ -1,0 +1,1 @@
+SELECT concat_ws('|', start_id, edge_type, end_id) AS edge_id, start_id, end_id, edge_type, count(*) AS mention_count FROM "@receipt-triples:transform_rows" WHERE edge_type = 'ISSUED_BY' AND end_id IS NOT NULL AND end_id <> '' GROUP BY start_id, end_id, edge_type

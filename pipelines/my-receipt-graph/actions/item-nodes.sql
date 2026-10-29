@@ -1,0 +1,1 @@
+WITH m AS (SELECT end_id AS node_id, end_name AS node_name FROM "@receipt-triples:transform_rows" WHERE end_type = 'Item' AND end_id IS NOT NULL AND end_id <> '') SELECT node_id, node_id AS __corvic_surrogate_id, 'Item' AS node_type, min(node_name) AS name, count(*) AS mention_count FROM m GROUP BY node_id
