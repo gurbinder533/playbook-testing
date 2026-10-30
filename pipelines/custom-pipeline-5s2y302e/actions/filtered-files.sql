@@ -1,1 +1,0 @@
-SELECT * FROM "@receipts:file" WHERE mime_type = 'image/jpeg'

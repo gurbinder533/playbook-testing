@@ -1,1 +1,0 @@
-SELECT * FROM "@filtered-files:output" WHERE size >= 50000
