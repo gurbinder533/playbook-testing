@@ -71,7 +71,11 @@ writes:
     label: "Order grid CSV exports"
     target: /artifact/exports/
 
+chat:
+  models: [corvic_rook]
+
+
 refresh:
   mode: feature_view
   seconds: 0
-engine: "1.32.0"
+engine: 1.32.0

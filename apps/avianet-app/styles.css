@@ -158,6 +158,32 @@ details.msel .msel-opt input { accent-color: var(--accent); width: 15px; height:
 .theme-toggle { height: 30px; padding: 0 12px; }
 button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* ---- On-page assistant (floating, bottom-right) ---- */
+#ctp-assistant { position: fixed; right: 18px; bottom: 18px; z-index: 60; font-size: 14px; }
+#ctp-assistant [hidden] { display: none !important; }
+.ca-fab { font: inherit; font-weight: 600; cursor: pointer; border: 0; border-radius: 999px; padding: 11px 18px; background: var(--accent); color: #fff; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
+.ca-fab:hover { filter: brightness(1.08); }
+.ca-panel { width: min(400px, calc(100vw - 24px)); height: min(560px, calc(100vh - 36px)); display: flex; flex-direction: column; background: var(--card); color: var(--ink); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 14px 40px rgba(0, 0, 0, .3); overflow: hidden; }
+.ca-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; background: var(--accent); color: #fff; }
+.ca-panel > header button { font: inherit; font-size: 12px; cursor: pointer; border: 1px solid rgba(255, 255, 255, .55); background: transparent; color: #fff; border-radius: 6px; padding: 3px 8px; margin-left: 6px; }
+.ca-panel > header button:hover { background: rgba(255, 255, 255, .18); }
+.ca-log { list-style: none; margin: 0; padding: 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.ca-log li { max-width: 88%; padding: 8px 11px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.4; }
+.ca-user { align-self: flex-end; background: var(--accent); color: #fff; }
+.ca-assistant { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
+.ca-sugg { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.ca-chip { font: inherit; font-size: 12px; cursor: pointer; padding: 5px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink); text-align: left; }
+.ca-chip:hover { border-color: var(--accent); }
+.ca-form { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--border); align-items: flex-end; }
+.ca-form textarea { flex: 1; resize: none; font: inherit; padding: 8px 10px; border: 1px solid var(--ctl-border); border-radius: 8px; background: var(--ctl-bg); color: var(--ink); }
+.ca-form textarea:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47, 111, 143, .22); }
+.ca-send { font: inherit; font-weight: 600; cursor: pointer; border: 0; border-radius: 8px; padding: 9px 14px; background: var(--accent); color: #fff; }
+.ca-send:disabled { opacity: .6; cursor: default; }
+.ca-error { margin: 0; padding: 0 12px 6px; color: var(--late); font-size: 13px; }
+.ca-note { margin: 0; padding: 0 12px 8px; color: var(--muted); font-size: 11px; }
+html[data-theme="dark"] .ca-user, html[data-theme="dark"] .ca-send, html[data-theme="dark"] .ca-fab, html[data-theme="dark"] .ca-panel > header { background: #2f6f8f; color: #fff; }
+@media (max-width: 760px) { #ctp-assistant { right: 10px; bottom: 10px; } }
+
 /* ---- Dark mode: toggled from the nav (data-theme on <html>), remembered per reader ---- */
 :root { color-scheme: light; }
 html[data-theme="dark"] { color-scheme: dark; }

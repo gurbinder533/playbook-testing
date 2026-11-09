@@ -1,4 +1,5 @@
 import { esc } from "@corvic/live";
+import { mountAssistant } from "./assistant.js";
 
 export const OTHER = "__OTHER__";
 export const OTHER_LABEL = "All other customers";
@@ -170,6 +171,7 @@ document.addEventListener("click", (e) => {
 });
 
 export function navHtml(ctx) {
+  try { mountAssistant(ctx); } catch (_) { /* the assistant is optional: never block a page */ }
   const here = ctx.route.path || "home";
   const _sp = params(ctx);
   const _ok = (v) => (/^\d{4}-\d{2}-\d{2}$/.test(v || "") ? v : "");
