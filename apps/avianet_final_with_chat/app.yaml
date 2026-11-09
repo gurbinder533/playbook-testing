@@ -1,0 +1,81 @@
+schema_version: 1
+title: "Clear to Pick Report Summary & Drill down"
+description: "Sales-order ship readiness from the CTP algorithm, fed live by the Oracle
+  CDC pipeline: weekly revenue summary, order grid and line view."
+icon: analytics-up
+accent_color: "#2F6F8F"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Summary"
+    home: true
+  - path: dashboard
+    module: pages/dashboard.js
+    title: "Equipment revenue"
+  - path: holds
+    module: pages/holds.js
+    title: "Order Holds"
+  - path: orders
+    module: pages/orders.js
+    title: "Order grid"
+  - path: allocation
+    module: pages/allocation.js
+    title: "Allocation"
+  - path: lines
+    module: pages/lines.js
+    title: "Line view"
+    hidden: true
+
+styles:
+  - styles.css
+
+data:
+  - id: orders
+    label: "CTP orders (one row per sales order)"
+    source: /table/orders
+    produced_by: {kind: pipeline, pipeline: "Oracle: CDC pipeline", pipeline_id: "24875"}
+  - id: lines
+    label: "CTP lines (equipment, software and EQ-discount lines)"
+    source: /table/lines
+    produced_by: {kind: pipeline, pipeline: "Oracle: CDC pipeline", pipeline_id: "24875"}
+  - id: alloc
+    label: "CTP allocation (every open line with its allocation step)"
+    source: /table/alloc
+    produced_by: {kind: pipeline, pipeline: "Oracle: CDC pipeline", pipeline_id: "24875"}
+  - id: eqdash
+    label: "CTP equipment revenue dashboard (one row per order and slice)"
+    source: /table/eqdash
+    produced_by: {kind: pipeline, pipeline: "Oracle: CDC pipeline", pipeline_id: "24875"}
+  - id: regions
+    label: "CTP order region (ship-to country mapped to BTR region)"
+    source: /table/regions
+    produced_by: {kind: pipeline, pipeline: "Oracle: CDC pipeline", pipeline_id: "24875"}
+  - id: eqlines
+    label: "CTP equipment revenue lines (one row per order line and slice; ties to
+      the dashboard)"
+    source: /table/eqlines
+    produced_by: {kind: pipeline, pipeline: "Oracle: CDC pipeline", pipeline_id: "24875"}
+  - id: odates
+    label: "CTP order dates (order entry date per sales order)"
+    source: /table/odates
+    produced_by: {kind: pipeline, pipeline: "Oracle: CDC pipeline", pipeline_id: "24875"}
+
+  - id: exports
+    label: "Order grid CSV exports (files the app saved for download)"
+    source: /table/exports
+    produced_by: {kind: source}
+
+writes:
+  - id: exports
+    label: "Order grid CSV exports"
+    target: /artifact/exports/
+
+chat:
+  models: [corvic_rook]
+
+
+refresh:
+  mode: feature_view
+  seconds: 0
+engine: 1.32.0
