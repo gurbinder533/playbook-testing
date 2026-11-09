@@ -145,6 +145,30 @@ export function wireSlicers(ctx, path, extra = {}) {
   }, { signal: ctx.signal });
 }
 
+// ---- Light / dark theme: remembered per reader, defaults to the reader's system setting ------
+const THEME_KEY = "ctp_theme";
+function readTheme() {
+  try { const v = window.localStorage.getItem(THEME_KEY); if (v === "dark" || v === "light") return v; } catch (_) { /* storage blocked */ }
+  try { return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (_) { return "light"; }
+}
+let THEME = readTheme();
+function applyTheme(t) {
+  THEME = t;
+  try { document.documentElement.setAttribute("data-theme", t); } catch (_) { /* ignore */ }
+  document.querySelectorAll("[data-theme-toggle]").forEach((b) => {
+    b.textContent = t === "dark" ? "\u2600 Light mode" : "\u263e Dark mode";
+    b.setAttribute("aria-pressed", t === "dark" ? "true" : "false");
+  });
+}
+applyTheme(THEME);
+document.addEventListener("click", (e) => {
+  const b = e.target && e.target.closest ? e.target.closest("[data-theme-toggle]") : null;
+  if (!b) return;
+  const next = THEME === "dark" ? "light" : "dark";
+  try { window.localStorage.setItem(THEME_KEY, next); } catch (_) { /* storage blocked */ }
+  applyTheme(next);
+});
+
 export function navHtml(ctx) {
   const here = ctx.route.path || "home";
   const _sp = params(ctx);
@@ -152,7 +176,7 @@ export function navHtml(ctx) {
   CARRY = { of: _ok(_sp.get("of")), ot: _ok(_sp.get("ot")) };
   const l = (p, t) => `<a href="${esc(href(p))}"${here === p || (p === "home" && here === "") ? ' aria-current="page"' : ""}>${t}</a>`;
   return `<header class="top"><div class="brand">Clear to Pick <small>Summary &amp; Drill down</small></div>
-    <nav>${l("home", "Summary")}${l("dashboard", "Equipment revenue")}${l("holds", "Order Holds")}${l("orders", "Order grid")}${l("allocation", "Allocation")}</nav></header>`;
+    <nav>${l("home", "Summary")}${l("dashboard", "Equipment revenue")}${l("holds", "Order Holds")}${l("orders", "Order grid")}${l("allocation", "Allocation")}<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="${THEME === "dark"}">${THEME === "dark" ? "\u2600 Light mode" : "\u263e Dark mode"}</button></nav></header>`;
 }
 
 // ---- Aviat FY27 fiscal calendar (quarters run Saturday to Friday) --------------------

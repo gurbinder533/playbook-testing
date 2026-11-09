@@ -343,7 +343,7 @@ export default async function render(ctx) {
     <p class="muted">${esc(qLabel)} (promise date ${esc(qs)} to ${esc(qe)} inclusive) \u00b7 as of ${esc(today)} \u00b7 weeks end on Friday \u00b7 ${rgList.length ? `${rgList.length > 1 ? "regions" : "region"} ${esc(rgDisp)}` : "all regions"} \u00b7 equipment revenue only (software excluded) \u00b7 click any amount to see its sales orders.</p>
     <div id="ctl" class="slicers so-filter">
       ${regionControl}
-      <label class="slicer"><span>BTR file (CSV with Region and BTR Amount)</span><input id="btr-file" type="file" accept=".csv,text/csv" style="min-width:14rem"></label>
+      <label class="slicer"><span>BTR file (CSV with Region and BTR Amount)</span><input id="btr-file" type="file" accept=".csv,text/csv"></label>
       ${file ? '<button type="button" id="btr-clear" class="chip">Remove BTR file</button>' : ""}
       <a class="chip" href="${esc(href("dashboard", { np: npOn ? "" : "1", rg: cur.rg }))}">${npOn ? "Exclude NO PROMISE DATE from the quarter total" : "Include NO PROMISE DATE in the quarter total"}</a>
     </div>

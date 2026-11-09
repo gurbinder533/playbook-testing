@@ -4,19 +4,15 @@ import { usd, int, qty, href, params, navHtml, notice, dateFilterHtml, wireDateF
 const LIMIT = 1500;
 
 const STEPS = [
-  ["00-Reserved OH", "1", "Reservation already ties the line to on-hand stock (taken first)"],
-  ["00-Reserved CL PO", "2", "Reservation ties the line to a closed (received) PO"],
-  ["00-Reserved PO", "3", "Reservation ties the line to an open PO or internal sales order"],
-  ["Reserve to OH", "4", "Unreserved on-hand stock: locators naming this order or its PO first, then other on-hand by order priority"],
-  ["Reserve to PO", "5", "Open PO supply: POs whose comment names this order first, then other open POs by order priority"],
-  ["7-PO to place", "6", "Requisition reserved, PO not placed yet (available after item lead time)"],
-  ["Buy", "7", "No stock or PO left: must be purchased (available after item lead time)"],
+  ["Reserve to OH", "1", "Unreserved on-hand stock for the item and warehouse, taken in order of promise date"],
+  ["Reserve to PO", "2", "Open PO supply for the item and warehouse (promised date, else need-by date), taken in order of promise date"],
+  ["Buy", "3", "No stock or PO left: must be purchased (available after the item lead time)"],
 ];
 
 function searchForm(val) {
   return `<form id="al-form" class="slicers so-filter">
     <label class="slicer"><span>Sales Order number</span>
-      <input id="al-input" type="search" inputmode="numeric" autocomplete="off" placeholder="e.g. 2419667 (partial number lists matches)" value="${esc(val)}" style="min-width:22rem"></label>
+      <input id="al-input" type="search" inputmode="numeric" autocomplete="off" placeholder="e.g. 2419667 (partial number lists matches)" value="${esc(val)}"></label>
     <button type="submit" class="chip on">Show allocation</button></form>${dateFilterHtml("Narrows the list of matching orders; a specific sales order always opens.")}`;
 }
 

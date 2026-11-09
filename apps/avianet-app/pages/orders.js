@@ -100,7 +100,7 @@ export default async function render(ctx) {
     ${dateFilterHtml("", shownInReport)}
     <form id="so-form" class="slicers so-filter">
       <label class="slicer"><span>Sales Order number</span>
-        <input id="so-input" type="search" inputmode="numeric" autocomplete="off" placeholder="e.g. 4611529 (several: comma separated; partial ok)" value="${esc(soRaw)}" style="min-width:22rem"></label>
+        <input id="so-input" type="search" inputmode="numeric" autocomplete="off" placeholder="e.g. 4611529 (several: comma separated; partial ok)" value="${esc(soRaw)}"></label>
       <button type="submit" class="chip on">Filter</button>
       ${soRaw ? `<a class="chip" href="${esc(href("orders", { ...base, so: "", p: "" }))}">Clear order filter</a>` : ""}
     </form>
@@ -186,37 +186,27 @@ export default async function render(ctx) {
   const dl = ctx.content.querySelector("#dl-csv");
   if (dl) {
     dl.addEventListener("click", async () => {
-      const csv = buildText(",");
-      const fname = `clear-to-pick-order-grid-${new Date().toISOString().slice(0, 10)}${filterBits.length ? "-filtered" : ""}.csv`;
-      // Preferred: browser save dialog (works where the host allows file saves).
+      // The app runs in a sandboxed frame that blocks direct downloads, so the CSV is saved as a file
+      // and offered as a link that opens in a new tab, where the browser can download it.
+      dl.disabled = true;
+      setStatus("Preparing your CSV\u2026");
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const fname = `clear-to-pick-order-grid-${stamp}${filterBits.length ? "-filtered" : ""}.csv`;
       try {
-        if (window.showSaveFilePicker) {
-          const h = await window.showSaveFilePicker({ suggestedName: fname, types: [{ description: "CSV", accept: { "text/csv": [".csv"] } }] });
-          const w = await h.createWritable();
-          await w.write("\uFEFF" + csv);
-          await w.close();
-          setStatus(`Saved ${fname}.`);
-          return;
-        }
-      } catch (e) {
-        if (e && e.name === "AbortError") return;
-        /* blocked in a sandbox: fall back */
+        const res = await ctx.write.file("exports", fname, new Blob(["\uFEFF" + buildText(",")], { type: "text/csv;charset=utf-8" }), { contentType: "text/csv", signal: ctx.signal });
+        if (ctx.signal.aborted) return;
+        // Root-relative, addressed by the exports folder's real table reference (not its short name).
+        const url = `/artifact/459186:artifact/${encodeURIComponent(fname)}`;
+        setStatus("");
+        const box = ctx.content.querySelector("#dl-status");
+        if (box) box.innerHTML = `Your CSV (${int(rows.length)} orders) is ready: <a href="${esc(url)}" target="_blank" rel="noopener" id="dl-link"><b>Open in a new tab to download \u2197</b></a>`;
+      } catch (err) {
+        if (ctx.signal.aborted) return;
+        setStatus(`Could not prepare the CSV: ${err && err.message ? err.message : err}. Use "Copy to clipboard" and paste into Excel instead.`);
+        if (ctx.reportError) ctx.reportError(err);
+      } finally {
+        dl.disabled = false;
       }
-      try {
-        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fname;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-      } catch (e) { /* ignore */ }
-      // Downloads may be silently blocked by the host page, which cannot be detected; always offer the copy route.
-      const ok = await copyText(buildText("\t"));
-      if (ok) setStatus(`If no file was saved (your browser/host blocked the download), the ${int(rows.length)} rows were copied to your clipboard instead: paste into Excel.`);
-      else showFallback(buildText("\t"), "The download may have been blocked by the host page.");
     }, { signal: ctx.signal });
   }
   const cp = ctx.content.querySelector("#dl-copy");
