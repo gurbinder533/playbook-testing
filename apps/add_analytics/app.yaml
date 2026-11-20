@@ -1,0 +1,92 @@
+schema_version: 1
+title: "Signup Cohort Explorer"
+description: "Pick a signup date range and see who got value from Corvic, who got
+  stuck and where people dropped off — built from each person's PostHog journey."
+icon: analytics-up
+accent_color: "#1f7a4d"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Signup Cohort Explorer"
+    home: true
+  - path: meta
+    module: pages/meta.js
+    title: "Meta ads"
+  - path: ugc
+    module: pages/ugc.js
+    title: "UGC"
+  - path: ai
+    module: pages/ai.js
+    title: "AI chatbots"
+
+styles:
+  - styles.css
+
+# Day store: a daily pipeline run pulls each COMPLETE UTC day from PostHog once and keeps it; every analysed
+# row is computed locally from those stored days. The app only reads the results and filters them by the chosen
+# signup dates in the browser's DuckDB. It never starts a PostHog read.
+data:
+  - id: cohort
+    label: "Signup cohort (one row per person)"
+    source: /table/cohort
+    produced_by:
+      kind: pipeline
+      pipeline: "Signup Cohort Explorer (app)"
+      pipeline_id: "20815"
+  - id: biz
+    label: "Business events (upgrades, top-ups, invites)"
+    source: /table/biz
+    produced_by:
+      kind: pipeline
+      pipeline: "Signup Cohort Explorer (app)"
+      pipeline_id: "20815"
+  - id: roster
+    label: "All signups seen (counts only)"
+    source: /table/roster
+    produced_by:
+      kind: pipeline
+      pipeline: "Signup Cohort Explorer (app)"
+      pipeline_id: "20815"
+
+  - id: billing
+    label: "Plan / Credits / Billing page events (all users, test accounts excluded)"
+    source: /table/billing
+    produced_by:
+      kind: pipeline
+      pipeline: "Signup Cohort Explorer (app)"
+      pipeline_id: "20815"
+  - id: meta
+    label: "Meta + Google ad visits on the marketing site"
+    source: /table/meta
+    produced_by:
+      kind: pipeline
+      pipeline: "Signup Cohort Explorer (app)"
+      pipeline_id: "20815"
+  - id: ugc
+    label: "UGC visits: Instagram + YouTube links with no paid tag"
+    source: /table/ugc
+    produced_by:
+      kind: pipeline
+      pipeline: "Signup Cohort Explorer (app)"
+      pipeline_id: "20815"
+  - id: aichat
+    label: "AI chatbot visits: ChatGPT, Gemini and Perplexity links"
+    source: /table/aichat
+    produced_by:
+      kind: pipeline
+      pipeline: "Signup Cohort Explorer (app)"
+      pipeline_id: "20815"
+  - id: coverage
+    label: "Latest complete day stored from PostHog"
+    source: /table/coverage
+    produced_by:
+      kind: pipeline
+      pipeline: "Signup Cohort Explorer (app)"
+      pipeline_id: "20815"
+
+refresh:
+  mode: feature_view
+  seconds: 0
+
+engine: "1.32.0"
