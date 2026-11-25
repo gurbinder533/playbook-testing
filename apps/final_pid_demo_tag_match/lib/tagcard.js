@@ -18,13 +18,13 @@ export async function drawHist(ctx, view, { id, sh, img, syms }) {
   root.innerHTML = `<p class="muted">Loading the historian match\u2026</p>`;
   view.innerHTML = ""; view.appendChild(root);
   const alive = () => !ctx.signal.aborted && root.isConnected;
-  let tg, mt, hs, ds;
+  let tg, mt, hs, ds, decErr = "";
   try {
     [tg, mt, hs, ds] = await Promise.all([
       ctx.db.rows(`SELECT symbol_id, tag, type FROM tags WHERE drawing_id = ? LIMIT 2000`, [id], ctx.signal),
       ctx.db.rows(`SELECT tag, type, c1_id, c1_name, c1_score, c2_id, c2_name, c2_score, c3_id, c3_name, c3_score, reason, other_claims, status FROM matches WHERE drawing_id = ? LIMIT 2000`, [id], ctx.signal),
       ctx.db.rows(`SELECT tag_id, tag_name, descriptor, eng_units, area FROM histtags LIMIT 2000`, [], ctx.signal),
-      ctx.db.rows(`SELECT tag, action, hist_tag_id, hist_tag_name, reviewer FROM (SELECT tag, action, hist_tag_id, hist_tag_name, reviewer, row_number() OVER (PARTITION BY tag ORDER BY __corvic_inserted_at DESC) AS rn FROM decisions WHERE drawing_id = ?) WHERE rn = 1 LIMIT 2000`, [id], ctx.signal).catch((e) => { if (!ctx.signal.aborted) ctx.reportError(e); return []; }),
+      ctx.db.rows(`SELECT tag, action, hist_tag_id, hist_tag_name, reviewer FROM (SELECT tag, action, hist_tag_id, hist_tag_name, reviewer, row_number() OVER (PARTITION BY tag ORDER BY __corvic_inserted_at DESC) AS rn FROM decisions WHERE drawing_id = ?) WHERE rn = 1 LIMIT 2000`, [id], ctx.signal).catch((e) => { if (!ctx.signal.aborted) { ctx.reportError(e); decErr = String(e?.message || e).slice(0, 160); } return []; }),
     ]);
   } catch (e) { if (!alive()) return; ctx.reportError(e); root.innerHTML = `<div class="notice">The historian match could not be loaded yet. Run the Tag matching pipeline and reload.</div>`; return; }
   if (!alive()) return;
@@ -71,6 +71,7 @@ ${mt.length ? "" : `<div class="notice info" style="margin-top:8px">Historian ma
   const $ = (s) => root.querySelector(s);
   if (note) { const f = $("#hnote"); f.textContent = note; f.hidden = false; note = ""; }
   $("#hrev").value = reviewer;
+  if (decErr) { const f = $("#hnote"); f.textContent = `Reviewer decisions could not be loaded (${decErr}). Colours show the automatic matches only.`; f.hidden = false; }
   $("#hrev").addEventListener("input", (e) => { reviewer = e.target.value; }, { signal: ctx.signal });
   $("#htags").addEventListener("click", () => { showOn.sheet = id; }, { signal: ctx.signal });
   const imgEl = $("#hdet img");

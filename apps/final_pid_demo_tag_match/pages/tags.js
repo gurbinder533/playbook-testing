@@ -28,18 +28,19 @@ export default async function render(ctx) {
   const $ = (s) => ctx.content.querySelector(s);
   if (showOn.sheet) { sheetSel = showOn.sheet; showOn.sheet = ""; }
   if (flash) { const f = $("#flash"); f.textContent = flash; f.hidden = false; flash = ""; }
-  let sheets = [], base = [], hist = [], decs = [], tagN = 0, span = null;
+  let sheets = [], base = [], hist = [], decs = [], tagN = 0, span = null, decErr = "";
   try {
     [sheets, base, hist, decs, tagN, span] = await Promise.all([
-      ctx.db.rows(`SELECT drawing_id, title FROM sheets WHERE ok ORDER BY drawing_id LIMIT 60`, [], ctx.signal),
+      ctx.db.rows(`SELECT drawing_id, title FROM sheets WHERE ok AND source = 'sample' ORDER BY drawing_id LIMIT 60`, [], ctx.signal),
       ctx.db.rows(`SELECT match_key, drawing_id, tag, type, c1_id, c1_name, c1_score, c2_id, c2_name, c2_score, c3_id, c3_name, c3_score, reason, other_claims, same_area, status FROM matches LIMIT 2000`, [], ctx.signal),
       ctx.db.rows(`SELECT tag_id, tag_name, descriptor, eng_units, area FROM histtags LIMIT 2000`, [], ctx.signal),
-      ctx.db.rows(`SELECT drawing_id, tag, action, hist_tag_id, hist_tag_name, reviewer, decided_at FROM (SELECT drawing_id, tag, action, hist_tag_id, hist_tag_name, reviewer, __corvic_inserted_at AS decided_at, row_number() OVER (PARTITION BY drawing_id, tag ORDER BY __corvic_inserted_at DESC) AS rn FROM decisions) WHERE rn = 1 LIMIT 3000`, [], ctx.signal).catch((e) => { if (!ctx.signal.aborted) ctx.reportError(e); return []; }),
+      ctx.db.rows(`SELECT drawing_id, tag, action, hist_tag_id, hist_tag_name, reviewer, decided_at FROM (SELECT drawing_id, tag, action, hist_tag_id, hist_tag_name, reviewer, __corvic_inserted_at AS decided_at, row_number() OVER (PARTITION BY drawing_id, tag ORDER BY __corvic_inserted_at DESC) AS rn FROM decisions) WHERE rn = 1 LIMIT 3000`, [], ctx.signal).catch((e) => { if (!ctx.signal.aborted) { ctx.reportError(e); decErr = String(e?.message || e).slice(0, 160); } return []; }),
       ctx.db.rows(`SELECT count(DISTINCT drawing_id || '|' || tag) AS n FROM tags WHERE source = 'sample' AND trim(coalesce(tag, '')) <> ''`, [], ctx.signal).then((r) => r[0]?.n ?? 0),
-      ctx.db.rows(`SELECT min(hour) AS a, max(hour) AS b FROM hourly`, [], ctx.signal).then((r) => r[0] || null),
+      ctx.db.rows(`SELECT strftime(min(hour), '%Y-%m-%d') AS a, strftime(max(hour), '%Y-%m-%d') AS b FROM hourly`, [], ctx.signal).then((r) => r[0] || null),
     ]);
   } catch (e) { if (ctx.signal.aborted) return; ctx.reportError(e); $("#list").innerHTML = `<p class="muted">The tag matches could not be loaded yet. Run the Tag matching pipeline and reload.</p>`; $("#queue").innerHTML = ""; return; }
   if (ctx.signal.aborted) return;
+  if (decErr) { const f = $("#flash"); f.textContent = `Reviewer decisions could not be loaded (${decErr}). Counts and colours show the automatic matches only.`; f.hidden = false; }
   if (!base.length) { $("#list").innerHTML = `<p class="muted">No matches yet. Run the Tag matching pipeline, then reload.</p>`; $("#queue").innerHTML = ""; return; }
 
   const title = new Map(sheets.map((s) => [s.drawing_id, s.title]));
