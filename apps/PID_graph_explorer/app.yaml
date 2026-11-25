@@ -1,0 +1,145 @@
+schema_version: 1
+title: "P&ID Graph Studio"
+description: "Upload P&IDs, read them into a plant knowledge graph, review the doubtful
+  connections, and chat with your drawings. Includes a shared sample set."
+icon: sparkles
+accent_color: "#5A44C4"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Overview"
+    home: true
+  - path: graph
+    module: pages/graph.js
+    title: "Graph explorer"
+  - path: register
+    module: pages/register.js
+    title: "Register"
+  - path: loops
+    module: pages/loops.js
+    title: "Control loops"
+  - path: qa
+    module: pages/qa.js
+    title: "QA review"
+  - path: ask
+    module: pages/ask.js
+    title: "Ask the plant"
+  - path: ask/:conversation
+    module: pages/ask.js
+    title: "Ask the plant"
+    hidden: true
+
+styles:
+  - styles.css
+
+theme:
+  mode: light
+  tokens:
+    color.accent: {$type: color, $value: "#5A44C4"}
+
+data:
+  - id: sheets
+    label: "Drawing sheets"
+    source: /table/sheets
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Knowledge Graph (app)"
+      pipeline_id: "25499"
+  - id: equipment
+    label: "Equipment and instruments"
+    source: /table/equipment
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Knowledge Graph (app)"
+      pipeline_id: "25499"
+  - id: connections
+    label: "Connections"
+    source: /table/connections
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Knowledge Graph (app)"
+      pipeline_id: "25499"
+  - id: control_loops
+    label: "Control loops"
+    source: /table/control_loops
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Knowledge Graph (app)"
+      pipeline_id: "25499"
+  - id: qa_items
+    label: "QA review items"
+    source: /table/qa_items
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Knowledge Graph (app)"
+      pipeline_id: "25499"
+  - id: sample_sheets
+    label: "Sample drawing sheets"
+    source: /table/sample_sheets
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Sample Set (app)"
+      pipeline_id: "25515"
+  - id: sample_equipment
+    label: "Sample equipment and instruments"
+    source: /table/sample_equipment
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Sample Set (app)"
+      pipeline_id: "25515"
+  - id: sample_connections
+    label: "Sample connections"
+    source: /table/sample_connections
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Sample Set (app)"
+      pipeline_id: "25515"
+  - id: sample_loops
+    label: "Sample control loops"
+    source: /table/sample_loops
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Sample Set (app)"
+      pipeline_id: "25515"
+  - id: sample_qa_items
+    label: "Sample QA review items"
+    source: /table/sample_qa_items
+    produced_by:
+      kind: pipeline
+      pipeline: "P&ID Sample Set (app)"
+      pipeline_id: "25515"
+  - id: qa_decisions
+    label: "QA review decisions"
+    source: /table/qa_decisions
+    produced_by:
+      kind: source
+  - id: chat_history
+    label: "Chat history"
+    source: /table/chat_history
+    produced_by:
+      kind: source
+
+writes:
+  - id: drawings
+    label: "Uploaded drawings"
+    target: /artifact/drawings/
+  - id: qa_decisions
+    label: "QA review decisions"
+    target: /database/qa_decisions
+  - id: chat_history
+    label: "Chat history"
+    target: /database/chat_history
+
+pipelines:
+  - id: read_drawings
+    label: "Read my drawings"
+    target: /pipeline/25499
+
+chat:
+  models: [corvic_rook]
+
+refresh:
+  mode: feature_view
+  seconds: 0
+engine: "1.32.0"
