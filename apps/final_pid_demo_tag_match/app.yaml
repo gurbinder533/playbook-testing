@@ -1,0 +1,132 @@
+schema_version: 1
+title: "P&ID Demo"
+description: "Reads P&ID drawings into a plant graph, shows each original next to
+  a rebuilt version, scores reading accuracy against an answer key, and lets people
+  explore the graph and ask questions about it."
+icon: sparkles
+accent_color: "#991d85"
+
+routes:
+  - path: home
+    module: pages/home.js
+    title: "Home"
+    home: true
+  - path: graph
+    module: pages/graph.js
+    title: "Graph Explorer"
+  - path: ask
+    module: pages/ask.js
+    title: "Ask the Plant"
+  - path: qa
+    module: pages/qa.js
+    title: "QA review"
+  - path: drawings
+    module: pages/drawings.js
+    title: "My drawings"
+  - path: tags
+    module: pages/tags.js
+    title: "Tag matching"
+  - path: sheet/:id
+    module: pages/sheet.js
+    title: "Sheet"
+    hidden: true
+
+styles:
+  - styles.css
+
+data:
+  - id: sheets
+    label: "Sheets"
+    source: /table/sheets
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: symbols
+    label: "Symbols"
+    source: /table/symbols
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: connections
+    label: "Connections"
+    source: /table/connections
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: loops
+    label: "Control loops"
+    source: /table/loops
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: qa
+    label: "QA items"
+    source: /table/qa
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: tags
+    label: "Instrument tags"
+    source: /table/tags
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: images
+    label: "Drawing images"
+    source: /table/images
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: answer_key
+    label: "Answer key (samples)"
+    source: /table/answer_key
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: thumbs
+    label: "Sheet thumbnails"
+    source: /table/thumbs
+    produced_by: {kind: pipeline, pipeline: "P&ID plant graph reader (app)", 
+        pipeline_id: "28418"}
+  - id: uplog
+    label: "My uploads"
+    source: /table/uplog
+    produced_by: {kind: source}
+  - id: chats
+    label: "My chats"
+    source: /table/chats
+    produced_by: {kind: source}
+  - id: matches
+    label: "Tag matches"
+    source: /table/matches
+    produced_by: {kind: pipeline, pipeline: "Tag matching (app)", pipeline_id: "28456"}
+  - id: histtags
+    label: "Historian tags"
+    source: /table/histtags
+    produced_by: {kind: pipeline, pipeline: "Tag matching (app)", pipeline_id: "28456"}
+  - id: hourly
+    label: "Historian hourly averages (7 days)"
+    source: /table/hourly
+    produced_by: {kind: pipeline, pipeline: "Tag matching (app)", pipeline_id: "28456"}
+  - id: decisions
+    label: "Tag match decisions"
+    source: /table/decisions
+    produced_by: {kind: source}
+
+writes:
+  - id: uploads
+    label: "Drawing uploads"
+    target: /artifact/uploads/
+  - id: uplog
+    label: "Upload log"
+    target: /database/uplog
+  - id: chats
+    label: "Chat history"
+    target: /database/chats
+  - id: decisions
+    label: "Tag match decisions"
+    target: /database/decisions
+
+pipelines:
+  - id: read_drawings
+    label: "Read my drawings"
+    target: /pipeline/28418
+
+chat:
+  models: [corvic_rook]
+
+refresh:
+  mode: feature_view
+engine: "1.32.0"
